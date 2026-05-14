@@ -240,49 +240,6 @@
 </div>
 
 <!-- ============================================================== -->
-<!-- DEMOGRAPHIC FOUNDATION (VAP): appears for all chamber views    -->
-<!-- ============================================================== -->
-<section class="vap-section" id="vap-foundation">
-  <div class="wrap">
-    <h2>The receipts: Georgia changed. The map did not.</h2>
-    <p class="vap-lede">This is what the courts look at when they ask whether a redistricting plan dilutes Black voting power. Any Part Black Voting Age Population from the Decennial Census. The same measure used in <a href="https://www.supremecourt.gov/opinions/22pdf/21-1086_1co6.pdf" target="_blank" rel="noopener">Allen v. Milligan</a> and in the federal order against Georgia's prior maps.</p>
-
-    <div class="vap-headline" id="vap-headline">
-      <!-- filled by JS -->
-    </div>
-
-    <div class="vap-grid">
-      <!-- LEFT: county map -->
-      <div class="vap-card">
-        <h3>Every Georgia county, every Black voter, 2020.</h3>
-        <div class="vap-toggle" role="tablist" aria-label="Map view selector">
-          <button class="on" data-view="share">Black share of VAP (2020)</button>
-          <button data-view="growth">Growth since 2010</button>
-        </div>
-        <div class="vap-mapwrap" id="vap-mapwrap" aria-label="Map of Georgia counties by Black voting age population"></div>
-        <div class="vap-key" id="vap-key"></div>
-        <div class="vap-search">
-          <input type="text" id="vap-search-input" placeholder="Type a county name to find it (e.g., Fulton, Dougherty)" autocomplete="off">
-        </div>
-        <div class="vap-county-detail" id="vap-detail">Hover any county to see the receipts. Click to pin.</div>
-      </div>
-
-      <!-- RIGHT: receipts list -->
-      <div class="vap-card">
-        <h3>Where the lines are being drawn around real people.</h3>
-        <h4>Counties with the largest Black voter populations (2020)</h4>
-        <div id="vap-top-abs"></div>
-        <h4>Counties where Black voters grew fastest since 2010</h4>
-        <div id="vap-top-growth"></div>
-        <p class="vap-method-row" style="margin-top:18px;"><b>Why this matters.</b> Federal courts evaluating a Section 2 Voting Rights Act claim ask whether a politically cohesive minority group is sufficiently large and geographically compact to constitute a majority in a single district. The measure of "sufficiently large" is Any Part Black VAP. If the General Assembly's new maps reduce the number of districts where Black voters can elect their candidate of choice below what this population supports, that is the legal injury.</p>
-      </div>
-    </div>
-
-    <p class="source-line" style="margin-top:18px;">Source: <a href="https://www.census.gov/programs-surveys/decennial-census/about/rdo/summary-files.html" target="_blank" rel="noopener">U.S. Census Bureau, 2020 and 2010 Decennial Census, P.L. 94-171 Redistricting Data Summary File, Table P3</a>. Methodology: Any Part Black VAP is the sum of persons age 18+ who reported Black or African American alone or in combination with any other race(s). State and county totals reconcile to the published Census files. County centroids: U.S. Census Bureau, 2020 Gazetteer.</p>
-  </div>
-</section>
-
-<!-- ============================================================== -->
 <!-- US HOUSE VIEW                                                   -->
 <!-- ============================================================== -->
 <div class="chamber-view active" id="view-us">
@@ -983,6 +940,50 @@
 </section>
 
 </div>
+
+<!-- ============================================================== -->
+<!-- DEMOGRAPHIC FOUNDATION (VAP): appears for all chamber views    -->
+<!-- ============================================================== -->
+<section class="vap-section" id="vap-foundation">
+  <div class="wrap">
+    <h2>The receipts: Georgia changed. The map did not.</h2>
+    <p class="vap-lede">This is what the courts look at when they ask whether a redistricting plan dilutes Black voting power. Any Part Black Voting Age Population from the Decennial Census. The same measure used in <a href="https://www.supremecourt.gov/opinions/22pdf/21-1086_1co6.pdf" target="_blank" rel="noopener">Allen v. Milligan</a> and in the federal order against Georgia's prior maps.</p>
+
+    <div class="vap-headline" id="vap-headline">
+      <!-- filled by JS -->
+    </div>
+
+    <div class="vap-grid">
+      <!-- LEFT: county map -->
+      <div class="vap-card">
+        <h3>Every Georgia county, every Black voter, 2020.</h3>
+        <div class="vap-toggle" role="tablist" aria-label="Map view selector">
+          <button class="on" data-view="share">Black share of VAP (2020)</button>
+          <button data-view="growth">Growth since 2010</button>
+        </div>
+        <div class="vap-mapwrap" id="vap-mapwrap" aria-label="Map of Georgia counties by Black voting age population"></div>
+        <div class="vap-key" id="vap-key"></div>
+        <div class="vap-search">
+          <input type="text" id="vap-search-input" placeholder="Type a county name to find it (e.g., Fulton, Dougherty)" autocomplete="off">
+        </div>
+        <div class="vap-county-detail" id="vap-detail">Hover any county to see the receipts. Click to pin.</div>
+      </div>
+
+      <!-- RIGHT: receipts list -->
+      <div class="vap-card">
+        <h3>Where the lines are being drawn around real people.</h3>
+        <h4>Counties with the largest Black voter populations (2020)</h4>
+        <div id="vap-top-abs"></div>
+        <h4>Counties where Black voters grew fastest since 2010</h4>
+        <div id="vap-top-growth"></div>
+        <p class="vap-method-row" style="margin-top:18px;"><b>Why this matters.</b> Federal courts evaluating a Section 2 Voting Rights Act claim ask whether a politically cohesive minority group is sufficiently large and geographically compact to constitute a majority in a single district. The measure of "sufficiently large" is Any Part Black VAP. If the General Assembly's new maps reduce the number of districts where Black voters can elect their candidate of choice below what this population supports, that is the legal injury.</p>
+      </div>
+    </div>
+
+    <p class="source-line" style="margin-top:18px;">Source: <a href="https://www.census.gov/programs-surveys/decennial-census/about/rdo/summary-files.html" target="_blank" rel="noopener">U.S. Census Bureau, 2020 and 2010 Decennial Census, P.L. 94-171 Redistricting Data Summary File, Table P3</a>. Methodology: Any Part Black VAP is the sum of persons age 18+ who reported Black or African American alone or in combination with any other race(s). State and county totals reconcile to the published Census files. County centroids: U.S. Census Bureau, 2020 Gazetteer.</p>
+  </div>
+</section>
+
 <!-- CONTACT / PARTNER -->
 <section id="contact" style="background:var(--paler);border-bottom:none;">
   <div class="wrap">
