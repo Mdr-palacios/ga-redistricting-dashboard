@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Georgia Redistricting Dashboard | Common Cause Georgia</title>
-<meta name="description" content="A plain-language dashboard on Georgia's congressional map, how new maps are drawn, what state law requires, and the scenarios on the table for the June 17, 2026 special session.">
+<meta name="description" content="A plain-language dashboard on Georgia's congressional, state Senate, and state House maps. How they were drawn, what state law requires, and the scenarios on the table for the June 17, 2026 special session.">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <style>
@@ -38,6 +38,17 @@
   header.top .meta{margin-top:18px;color:var(--sky);font-size:13px;}
   header.top .meta b{color:#fff;}
 
+  /* Chamber selector (sticky) */
+  .chamber-bar{position:sticky;top:0;z-index:1000;background:#fff;border-bottom:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,0.04);}
+  .chamber-bar .inner{display:flex;align-items:center;gap:18px;padding:14px 0;flex-wrap:wrap;}
+  .chamber-bar .label{font-size:13px;letter-spacing:0.1em;text-transform:uppercase;color:var(--grey);font-weight:700;}
+  .chamber-tabs{display:flex;gap:8px;flex-wrap:wrap;}
+  .chamber-tab{padding:10px 18px;border-radius:6px;border:1px solid var(--border);background:#fff;color:var(--ink);font:inherit;font-size:15px;cursor:pointer;font-weight:600;display:flex;flex-direction:column;align-items:flex-start;gap:2px;transition:all 0.15s;}
+  .chamber-tab .tab-sub{font-size:12px;color:var(--grey);font-weight:400;letter-spacing:0;}
+  .chamber-tab:hover:not(.on){background:var(--paler);}
+  .chamber-tab.on{background:var(--navy);color:#fff;border-color:var(--navy);}
+  .chamber-tab.on .tab-sub{color:var(--sky);}
+
   /* Section */
   section{padding:56px 0;border-bottom:1px solid var(--border);}
   section h2{margin:0 0 6px;font-size:30px;color:var(--navy);font-weight:700;line-height:1.2;}
@@ -49,7 +60,7 @@
   #map{height:580px;border-radius:8px;border:1px solid var(--border);background:#fff;}
   .leaflet-container{font-family:inherit;background:#FBFAF6;}
   .leaflet-popup-content-wrapper{border-radius:6px;}
-  .leaflet-popup-content{margin:12px 14px;line-height:1.45;font-family:inherit;}
+  .leaflet-popup-content{margin:12px 14px;line-height:1.45;font-family:inherit;max-width:280px;}
   .pop-num{font-size:13px;color:var(--teal);font-weight:700;letter-spacing:0.05em;text-transform:uppercase;}
   .pop-name{font-size:18px;font-weight:700;color:var(--navy);margin:2px 0 6px;}
   .pop-rep{font-size:14px;color:var(--ink);}
@@ -85,7 +96,7 @@
   /* Law cards */
   .law-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;}
   @media (max-width:760px){.law-grid{grid-template-columns:1fr;}}
-  .law-card{background:var(--card);border:1px solid var(--border);border-left:none;border-radius:8px;padding:18px 20px;position:relative;overflow:hidden;}
+  .law-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:18px 20px;position:relative;overflow:hidden;}
   .law-card .req-tag{display:inline-block;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;color:#fff;padding:3px 8px;border-radius:3px;margin-bottom:8px;}
   .law-card.required .req-tag{background:var(--navy);}
   .law-card.absent .req-tag{background:var(--warn);}
@@ -127,6 +138,25 @@
   /* Source line */
   .source-line{margin-top:14px;font-size:13px;color:var(--grey);}
   .source-line a{color:var(--teal);font-weight:600;}
+
+  /* Chamber view swap */
+  .chamber-view{display:none;}
+  .chamber-view.active{display:block;}
+
+  /* Small district numbers for state maps */
+  .sl-label{font-size:10px;color:var(--navy);font-weight:700;text-shadow:-1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;pointer-events:none;}
+
+  /* Analysis card grid */
+  .analysis-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:20px;}
+  @media (max-width:760px){.analysis-grid{grid-template-columns:1fr;}}
+  .a-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:22px 24px;}
+  .a-card h3{margin:0 0 10px;color:var(--navy);font-size:20px;font-weight:700;}
+  .a-card p{margin:0 0 10px;font-size:15px;color:var(--ink);}
+  .a-card ul{margin:0;padding-left:20px;font-size:15px;color:var(--ink);}
+  .a-card ul li{margin-bottom:6px;}
+  .a-card .callout{background:var(--pale);border-radius:6px;padding:12px 14px;margin-top:12px;}
+  .a-card .callout .ct-lbl{font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:var(--navy);font-weight:700;margin-bottom:4px;}
+  .a-card .callout p{font-size:14px;margin:0;}
 </style>
 </head>
 <body>
@@ -135,100 +165,260 @@
   <div class="wrap">
     <div class="eyebrow">Common Cause Georgia &middot; Voter Education</div>
     <h1>Drawing the Lines: A Georgia Redistricting Dashboard</h1>
-    <p class="sub">The 14 congressional districts, the 180 state House and 56 state Senate districts, how new maps get drawn, what state law actually requires, how the legislature has used redistricting to target local officials, and the scenarios on the table for the June 17, 2026 special session.</p>
+    <p class="sub">Three sets of maps are on the table for the June 17, 2026 special session: the 14 US congressional districts, the 56 state Senate districts, and the 180 state House districts. Pick a chamber to see its map, its at-risk districts, and what is actually at stake.</p>
     <div class="meta">Updated May 2026 &middot; <b>Special session:</b> June 17, 2026 &middot; <b>Triggered by:</b> Callais v. Landry (US Supreme Court)</div>
   </div>
 </header>
 
-<!-- SECTION 1: THE MAP -->
-<section id="map-section">
+<!-- STICKY CHAMBER SELECTOR -->
+<div class="chamber-bar">
   <div class="wrap">
-    <h2>The current Georgia map.</h2>
-    <p class="lede">The 14 congressional districts in effect today, redrawn in 2023 after the Allen v. Milligan ruling. Click any district to see who represents it, the partisan lean, and how vulnerable it is to a redraw.</p>
-
-    <div class="stat-strip">
-      <div class="cell"><div class="num">14</div><div class="lbl">Congressional districts</div></div>
-      <div class="cell"><div class="num">4</div><div class="lbl">Held by Democrats today</div></div>
-      <div class="cell"><div class="num">2</div><div class="lbl">Majority-Black districts (GA-2, GA-13)</div></div>
-      <div class="cell"><div class="num">June 17</div><div class="lbl">Special session convenes</div></div>
+    <div class="inner">
+      <span class="label">View by chamber:</span>
+      <div class="chamber-tabs" role="tablist">
+        <button class="chamber-tab on" data-chamber="us" role="tab" aria-selected="true">
+          US House
+          <span class="tab-sub">14 congressional districts</span>
+        </button>
+        <button class="chamber-tab" data-chamber="senate" role="tab" aria-selected="false">
+          State Senate
+          <span class="tab-sub">56 districts</span>
+        </button>
+        <button class="chamber-tab" data-chamber="house" role="tab" aria-selected="false">
+          State House
+          <span class="tab-sub">180 districts</span>
+        </button>
+      </div>
     </div>
+  </div>
+</div>
 
-    <div class="map-wrap">
-      <div id="map" role="img" aria-label="Map of Georgia's 14 congressional districts"></div>
+<!-- ============================================================== -->
+<!-- US HOUSE VIEW                                                   -->
+<!-- ============================================================== -->
+<div class="chamber-view active" id="view-us">
 
-      <div class="map-side">
-        <div class="filter-card">
-          <h3>Filter districts</h3>
-          <div class="filter-btns">
-            <button class="chip on" data-filter="all">All 14 districts</button>
-            <button class="chip" data-filter="dem">Democratic-held (4)</button>
-            <button class="chip" data-filter="rep">Republican-held (10)</button>
-            <button class="chip" data-filter="risk">At-risk in any redraw</button>
+  <section id="map-section-us">
+    <div class="wrap">
+      <h2>Georgia's 14 US House districts.</h2>
+      <p class="lede">The congressional map in effect today, redrawn in 2023 after the Allen v. Milligan ruling. Click any district to see who represents it, the partisan lean, and how vulnerable it is to a redraw.</p>
+
+      <div class="stat-strip">
+        <div class="cell"><div class="num">14</div><div class="lbl">Congressional districts</div></div>
+        <div class="cell"><div class="num">4</div><div class="lbl">Held by Democrats today</div></div>
+        <div class="cell"><div class="num">2</div><div class="lbl">Majority-Black districts (GA-2, GA-13)</div></div>
+        <div class="cell"><div class="num">June 17</div><div class="lbl">Special session convenes</div></div>
+      </div>
+
+      <div class="map-wrap">
+        <div id="map-us" class="map-canvas" role="img" aria-label="Map of Georgia's 14 congressional districts"></div>
+
+        <div class="map-side">
+          <div class="filter-card">
+            <h3>Filter districts</h3>
+            <div class="filter-btns" data-filter-group="us">
+              <button class="chip on" data-filter="all">All 14 districts</button>
+              <button class="chip" data-filter="dem">Democratic-held (4)</button>
+              <button class="chip" data-filter="rep">Republican-held (10)</button>
+              <button class="chip" data-filter="risk">At-risk in any redraw</button>
+            </div>
+          </div>
+
+          <div class="legend-card">
+            <h3>Map legend</h3>
+            <div class="legend-row"><span class="legend-swatch" style="background:#3D7B89;"></span><span>Democratic-held</span></div>
+            <div class="legend-row"><span class="legend-swatch" style="background:#A84B2F;"></span><span>Republican-held</span></div>
+            <div class="legend-row"><span class="legend-swatch" style="background:repeating-linear-gradient(45deg,#A84B2F 0 4px,#fff 4px 8px);"></span><span>At-risk in a redraw</span></div>
+          </div>
+
+          <div class="info-card">
+            <h3>What you are seeing</h3>
+            <p>The 2023 map after <b>Allen v. Milligan</b>, drawn under the assumption that Section 2 of the Voting Rights Act still required majority-Black districts.</p>
+            <p>The June 17 special session may revisit these lines. <a href="#scenarios">See potential scenarios</a>.</p>
           </div>
         </div>
-
-        <div class="legend-card">
-          <h3>Map legend</h3>
-          <div class="legend-row"><span class="legend-swatch" style="background:#3D7B89;"></span><span>Democratic-held</span></div>
-          <div class="legend-row"><span class="legend-swatch" style="background:#A84B2F;"></span><span>Republican-held</span></div>
-          <div class="legend-row"><span class="legend-swatch" style="background:#1F3A5F;border:2px dashed #fff;outline:1px solid #1F3A5F;"></span><span>Majority-Black district</span></div>
-          <div class="legend-row"><span class="legend-swatch" style="background:repeating-linear-gradient(45deg,#A84B2F 0 4px,#fff 4px 8px);"></span><span>At-risk in a redraw</span></div>
-        </div>
-
-        <div class="info-card">
-          <h3>What you are seeing</h3>
-          <p>The 2023 map after <b>Allen v. Milligan</b>, drawn under the assumption that Section 2 of the Voting Rights Act still required majority-Black districts.</p>
-          <p>The June 17 special session may revisit these lines. <a href="#scenarios">See potential scenarios</a>.</p>
-        </div>
-      </div>
-    </div>
-
-    <p class="source-line">District boundaries: <a href="https://tigerweb.geo.census.gov/" target="_blank" rel="noopener">US Census TIGERweb</a>. Representatives and CPVI: <a href="https://en.wikipedia.org/wiki/Georgia%27s_congressional_districts" target="_blank" rel="noopener">Georgia's congressional districts</a>, <a href="https://www.cookpolitical.com/cook-pvi" target="_blank" rel="noopener">Cook Political Report</a>.</p>
-  </div>
-</section>
-
-<!-- SECTION 1B: STATE HOUSE + SENATE -->
-<section id="state-leg">
-  <div class="wrap">
-    <h2>The state House and state Senate, too.</h2>
-    <p class="lede">The Kemp proclamation explicitly opens the special session to redraw the state Senate, state House, and "any other state office elected by district." That last clause is the one most people miss, and it is the one with the biggest consequences for local government.</p>
-
-    <div class="stat-strip">
-      <div class="cell"><div class="num">180</div><div class="lbl">State House districts</div></div>
-      <div class="cell"><div class="num">56</div><div class="lbl">State Senate districts</div></div>
-      <div class="cell"><div class="num">7</div><div class="lbl">New majority-Black districts ordered in 2023 (5 House, 2 Senate)</div></div>
-      <div class="cell"><div class="num">2028</div><div class="lbl">First election under any new map</div></div>
-    </div>
-
-    <div class="two-col" style="margin-top:8px;">
-      <div>
-        <h3 style="margin:0 0 10px;color:var(--navy);font-size:20px;">What is at stake under the Gold Dome</h3>
-        <p style="font-size:15px;color:var(--ink);margin:0 0 12px;">After Alpha Phi Alpha v. Raffensperger (2023), a federal court ordered Georgia to create five new majority-Black state House districts (in Atlanta's western and southern suburbs) and two new majority-Black state Senate districts. Those court-drawn districts are the immediate target of any post-Callais redraw.</p>
-        <p style="font-size:15px;color:var(--ink);margin:0 0 12px;">A redraw of the state legislative maps would directly affect:</p>
-        <ul style="font-size:15px;color:var(--ink);margin:0 0 12px;padding-left:22px;">
-          <li>The 5 new majority-Black <b>state House</b> districts ordered in 2023, mostly in Cobb, Douglas, Fulton, and Henry counties</li>
-          <li>The 2 new majority-Black <b>state Senate</b> districts, including SD-23 (Augusta corridor) and SD-28 (south metro)</li>
-          <li>The legislative majorities themselves: Georgia House is currently 100R / 80D, Senate is 33R / 23D</li>
-          <li>Every committee chair, including the chairs of Reapportionment, Judiciary, Elections, and Appropriations</li>
-        </ul>
       </div>
 
-      <div>
-        <h3 style="margin:0 0 10px;color:var(--navy);font-size:20px;">Why this matters for who governs Georgia day to day</h3>
-        <p style="font-size:15px;color:var(--ink);margin:0 0 12px;">The state legislature decides whether Medicaid expands, what hospitals can charge, how schools are funded, how elections are run, and what local governments are allowed to do. The makeup of the General Assembly shapes almost every issue a Georgia voter cares about.</p>
-        <p style="font-size:15px;color:var(--ink);margin:0 0 12px;">Changing 7 to 14 state legislative seats can flip whether bills like SB 189 or HB 369 get passed in the first place. It can flip whether the legislature uses its power to redistrict local boards (see the next section).</p>
-        <div style="background:var(--pale);border-radius:6px;padding:14px 16px;margin-top:14px;">
-          <div style="font-size:13px;letter-spacing:0.1em;text-transform:uppercase;color:var(--navy);font-weight:700;margin-bottom:6px;">Quick distinction</div>
-          <p style="font-size:14px;color:var(--ink);margin:0;">A new <b>congressional</b> map changes who Georgia sends to Washington. A new <b>state House and Senate</b> map changes who runs the state, draws the next maps, and writes the rules every city and county lives under.</p>
+      <p class="source-line">District boundaries: <a href="https://tigerweb.geo.census.gov/" target="_blank" rel="noopener">US Census TIGERweb</a>. Representatives and CPVI: <a href="https://en.wikipedia.org/wiki/Georgia%27s_congressional_districts" target="_blank" rel="noopener">Georgia's congressional districts</a>, <a href="https://www.cookpolitical.com/cook-pvi" target="_blank" rel="noopener">Cook Political Report</a>.</p>
+
+      <div class="analysis-grid">
+        <div class="a-card">
+          <h3>What is at stake</h3>
+          <p>Two seats are the most likely targets of a post-Callais congressional redraw.</p>
+          <ul>
+            <li><b>GA-2 (Sanford Bishop, D):</b> Black-majority rural southwest, including Cuthbert, Albany, Macon, and Columbus. Cracking the Black Belt corridor would likely flip this seat.</li>
+            <li><b>GA-6 (Lucy McBath, D):</b> Suburban Atlanta, plurality-Black after the 2023 redraw. Reversing the court-ordered configuration is the other obvious target.</li>
+            <li><b>GA-13 (vacant, D):</b> South Atlanta suburbs, majority-Black. Less likely to be redrawn alone but exposed in any full-map scenario.</li>
+          </ul>
+        </div>
+        <div class="a-card">
+          <h3>Why congressional maps matter</h3>
+          <p>The congressional map controls who Georgia sends to Washington. A redraw of one or two seats can shift the entire US House majority, which determines national policy on health care, immigration, voting rights, and federal spending in Georgia.</p>
+          <div class="callout">
+            <div class="ct-lbl">Quick distinction</div>
+            <p>A new congressional map changes who Georgia sends to Washington. State legislative maps change who runs Georgia day to day. The June 17 special session opens both.</p>
+          </div>
         </div>
       </div>
     </div>
+  </section>
 
-    <p class="source-line">Source: <a href="https://www.aclu.org/press-releases/federal-court-orders-georgia-to-redraw-state-legislative-district-maps" target="_blank" rel="noopener">ACLU on Alpha Phi Alpha v. Raffensperger</a>, <a href="https://thecurrentga.org/2026/05/13/kemp-calls-june-special-session-to-address-redistricting-ballot-qr-codes-in-georgia/" target="_blank" rel="noopener">The Current GA on the Kemp proclamation</a>, <a href="https://ballotpedia.org/Redistricting_in_Georgia" target="_blank" rel="noopener">Ballotpedia</a>.</p>
-  </div>
-</section>
+</div>
 
-<!-- SECTION 1C: TARGETING LOCAL OFFICIALS -->
+<!-- ============================================================== -->
+<!-- STATE SENATE VIEW                                               -->
+<!-- ============================================================== -->
+<div class="chamber-view" id="view-senate">
+
+  <section id="map-section-senate">
+    <div class="wrap">
+      <h2>Georgia's 56 state Senate districts.</h2>
+      <p class="lede">The Senate map adopted in December 2023 after the court order in Alpha Phi Alpha v. Raffensperger. The court found ten districts violated the Voting Rights Act. Click any district to see what the court said and whether it could be redrawn again.</p>
+
+      <div class="stat-strip">
+        <div class="cell"><div class="num">56</div><div class="lbl">State Senate districts</div></div>
+        <div class="cell"><div class="num">33R / 23D</div><div class="lbl">Current party split</div></div>
+        <div class="cell"><div class="num">10</div><div class="lbl">Districts the court found violated the VRA in 2023</div></div>
+        <div class="cell"><div class="num">2028</div><div class="lbl">First election under any new map</div></div>
+      </div>
+
+      <div class="map-wrap">
+        <div id="map-senate" class="map-canvas" role="img" aria-label="Map of Georgia's 56 state Senate districts"></div>
+
+        <div class="map-side">
+          <div class="filter-card">
+            <h3>Filter districts</h3>
+            <div class="filter-btns" data-filter-group="senate">
+              <button class="chip on" data-filter="all">All 56 districts</button>
+              <button class="chip" data-filter="vra">VRA-violating (10)</button>
+              <button class="chip" data-filter="court">Court-created in 2023 (2)</button>
+              <button class="chip" data-filter="risk">At-risk in any redraw</button>
+            </div>
+          </div>
+
+          <div class="legend-card">
+            <h3>Map legend</h3>
+            <div class="legend-row"><span class="legend-swatch" style="background:#3D7B89;"></span><span>Democratic-held</span></div>
+            <div class="legend-row"><span class="legend-swatch" style="background:#A84B2F;"></span><span>Republican-held</span></div>
+            <div class="legend-row"><span class="legend-swatch" style="background:repeating-linear-gradient(45deg,#A84B2F 0 4px,#fff 4px 8px);"></span><span>Found to violate VRA in 2023</span></div>
+          </div>
+
+          <div class="info-card">
+            <h3>What you are seeing</h3>
+            <p>The Senate map enacted in <b>SB 1EX (2023)</b> after a federal court ordered new majority-Black districts.</p>
+            <p>The court found ten districts violated Section 2 of the VRA: <b>SD-10, 16, 17, 25, 28, 30, 34, 35, 43, and 44</b>. These are the immediate targets of any post-Callais redraw.</p>
+          </div>
+        </div>
+      </div>
+
+      <p class="source-line">District boundaries: <a href="https://tigerweb.geo.census.gov/" target="_blank" rel="noopener">US Census TIGERweb</a>. Court findings: <a href="https://law.justia.com/cases/federal/district-courts/georgia/gandce/1:2021cv05337/298476/333/" target="_blank" rel="noopener">Alpha Phi Alpha v. Raffensperger order (Oct. 26, 2023)</a>. Composition: <a href="https://ballotpedia.org/Redistricting_in_Georgia" target="_blank" rel="noopener">Ballotpedia</a>.</p>
+
+      <div class="analysis-grid">
+        <div class="a-card">
+          <h3>What is at stake under the Gold Dome</h3>
+          <p>The federal court in Alpha Phi Alpha v. Raffensperger ordered Georgia to create two additional majority-Black state Senate districts in south-metro Atlanta. The current Senate map (SB 1EX, December 2023) is the result. Callais v. Landry now gives the General Assembly an opening to argue some of those districts no longer have to exist.</p>
+          <p>A redraw of the Senate map would directly affect:</p>
+          <ul>
+            <li>The two court-ordered majority-Black districts in south-metro Atlanta</li>
+            <li>The Black Belt corridor districts the court flagged: SD-25, 28, 34, 35, 43, 44</li>
+            <li>The Augusta and Macon corridors: SD-23 area, SD-16, SD-17</li>
+            <li>The Senate majority itself, currently 33R / 23D</li>
+          </ul>
+        </div>
+        <div class="a-card">
+          <h3>Why the Senate map matters</h3>
+          <p>The Senate confirms the maps that govern every other body. The chair of Senate Reapportionment (Sen. Shelly Echols, R) sets the schedule for what gets heard. The Senate Minority Leader (Sen. Harold Jones II, D, SD-22 Augusta) sits on the committee but cannot stop a majority vote.</p>
+          <p>Changing 4 to 7 Senate seats can flip whether bills like SB 189 or HB 369 pass, whether Medicaid expansion gets a hearing, and whether the legislature uses its power to redraw local boards (see the targeting section).</p>
+          <div class="callout">
+            <div class="ct-lbl">If a senator loses their seat</div>
+            <p>They also lose their seat on the Local Legislative Delegation, the body that draws the lines for every city and county in their district.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- ============================================================== -->
+<!-- STATE HOUSE VIEW                                                -->
+<!-- ============================================================== -->
+<div class="chamber-view" id="view-house">
+
+  <section id="map-section-house">
+    <div class="wrap">
+      <h2>Georgia's 180 state House districts.</h2>
+      <p class="lede">The House map adopted in December 2023 after the court order in Alpha Phi Alpha v. Raffensperger. The court found eleven districts violated the Voting Rights Act. Click any district to see what the court said and whether it could be redrawn again.</p>
+
+      <div class="stat-strip">
+        <div class="cell"><div class="num">180</div><div class="lbl">State House districts</div></div>
+        <div class="cell"><div class="num">100R / 80D</div><div class="lbl">Current party split</div></div>
+        <div class="cell"><div class="num">11</div><div class="lbl">Districts the court found violated the VRA in 2023</div></div>
+        <div class="cell"><div class="num">2028</div><div class="lbl">First election under any new map</div></div>
+      </div>
+
+      <div class="map-wrap">
+        <div id="map-house" class="map-canvas" role="img" aria-label="Map of Georgia's 180 state House districts"></div>
+
+        <div class="map-side">
+          <div class="filter-card">
+            <h3>Filter districts</h3>
+            <div class="filter-btns" data-filter-group="house">
+              <button class="chip on" data-filter="all">All 180 districts</button>
+              <button class="chip" data-filter="vra">VRA-violating (11)</button>
+              <button class="chip" data-filter="court">Court-created in 2023 (5)</button>
+              <button class="chip" data-filter="athens">Athens-split (HD 117, 119, 120, 121)</button>
+            </div>
+          </div>
+
+          <div class="legend-card">
+            <h3>Map legend</h3>
+            <div class="legend-row"><span class="legend-swatch" style="background:#3D7B89;"></span><span>Democratic-held</span></div>
+            <div class="legend-row"><span class="legend-swatch" style="background:#A84B2F;"></span><span>Republican-held</span></div>
+            <div class="legend-row"><span class="legend-swatch" style="background:repeating-linear-gradient(45deg,#A84B2F 0 4px,#fff 4px 8px);"></span><span>Found to violate VRA in 2023</span></div>
+            <div class="legend-row"><span class="legend-swatch" style="background:#FCEFCB;border:1px solid #7A5410;"></span><span>Splits Athens (HD 117, 119, 120, 121)</span></div>
+          </div>
+
+          <div class="info-card">
+            <h3>What you are seeing</h3>
+            <p>The House map enacted in <b>HB 1EX (2023)</b> after a federal court ordered new majority-Black districts.</p>
+            <p>The court found eleven districts violated Section 2 of the VRA: <b>HD-61, 64, 74, 78, 117, 133, 142, 143, 145, 147, and 149</b>.</p>
+          </div>
+        </div>
+      </div>
+
+      <p class="source-line">District boundaries: <a href="https://tigerweb.geo.census.gov/" target="_blank" rel="noopener">US Census TIGERweb</a>. Court findings: <a href="https://law.justia.com/cases/federal/district-courts/georgia/gandce/1:2021cv05337/298476/333/" target="_blank" rel="noopener">Alpha Phi Alpha v. Raffensperger order (Oct. 26, 2023)</a>. Athens split: <a href="https://www.ajc.com/politics/athens-voters-wanted-more-unified-maps-instead-theyre-more-divided/KMMEGGC63BGJZID34DIS337T4M/" target="_blank" rel="noopener">AJC analysis</a>.</p>
+
+      <div class="analysis-grid">
+        <div class="a-card">
+          <h3>What is at stake under the Gold Dome</h3>
+          <p>The federal court in Alpha Phi Alpha v. Raffensperger ordered Georgia to create five additional majority-Black state House districts: two in south-metro Atlanta and three more in regions where the court found vote dilution. The current House map (HB 1EX, December 2023) is the result.</p>
+          <p>A redraw of the House map would directly affect:</p>
+          <ul>
+            <li>The 5 court-ordered majority-Black districts in Cobb, Douglas, Fulton, and Henry counties</li>
+            <li>Black Belt and southwest Georgia: HD-142, 143, 145, 147, 149</li>
+            <li>The Athens splits: HD-117 was specifically flagged by the court</li>
+            <li>The House majority itself, currently 100R / 80D</li>
+          </ul>
+        </div>
+        <div class="a-card">
+          <h3>Why the House map matters</h3>
+          <p>The House is where most local legislation moves first. The chair of House Reapportionment (Rep. Rob Leverett, R) decides which maps and which local bills get heard. House members are also the ones who file the city-charter and county-commission redistricting bills that target local officials (see the targeting section).</p>
+          <p>Athens is the clearest documented case: the 2022 redraw split Georgia's most Democratic-leaning city east of Atlanta into 4 House districts so that only Rep. Spencer Frye (D) survived. The Callais opening gives the General Assembly room to deepen those splits.</p>
+          <div class="callout">
+            <div class="ct-lbl">If a representative loses their seat</div>
+            <p>They also lose their seat on the Local Legislative Delegation, the body that draws the lines for every city and county in their district.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- ============================================================== -->
+<!-- TARGETING LOCAL OFFICIALS (applies to all chambers)             -->
+<!-- ============================================================== -->
 <section id="targeting" style="background:#FAF6F2;">
   <div class="wrap">
     <h2>How redistricting gets used to target local officials.</h2>
@@ -324,7 +514,7 @@
   </div>
 </section>
 
-<!-- SECTION 2: HOW MAPS ARE DRAWN -->
+<!-- SECTION: HOW MAPS ARE DRAWN -->
 <section id="process">
   <div class="wrap">
     <h2>How maps get drawn in Georgia.</h2>
@@ -359,7 +549,7 @@
   </div>
 </section>
 
-<!-- SECTION 3: WHAT STATE LAW REQUIRES -->
+<!-- SECTION: WHAT STATE LAW REQUIRES -->
 <section id="law">
   <div class="wrap">
     <h2>What Georgia state law actually requires.</h2>
@@ -427,7 +617,7 @@
   </div>
 </section>
 
-<!-- SECTION 4: SCENARIOS -->
+<!-- SECTION: SCENARIOS -->
 <section id="scenarios">
   <div class="wrap">
     <h2>Potential map-drawing scenarios for June 17.</h2>
@@ -575,8 +765,10 @@
 </footer>
 
 <script>
-// District data: rep, party, CPVI, risk level
-const DISTRICTS = {
+// ============================================================
+// CONGRESSIONAL DISTRICTS (existing data)
+// ============================================================
+const CD_DISTRICTS = {
   '1':  {rep:'Buddy Carter',     party:'R', cpvi:'R+8',  risk:'low',  notes:'Coastal Georgia. Safe R.'},
   '2':  {rep:'Sanford Bishop',   party:'D', cpvi:'D+4',  risk:'high', notes:'Black-majority rural southwest. Most likely target of any redraw. Includes Cuthbert, Albany, Macon, Columbus.'},
   '3':  {rep:'Brian Jack',       party:'R', cpvi:'R+15', risk:'low',  notes:'West-central Georgia. Safe R.'},
@@ -593,113 +785,330 @@ const DISTRICTS = {
   '14': {rep:'Clay Fuller',      party:'R', cpvi:'R+19', risk:'low',  notes:'Northwest Georgia. Safe R.'}
 };
 
-const COLORS = {
-  'D': '#3D7B89',
-  'R': '#A84B2F'
+// ============================================================
+// STATE SENATE: VRA-violating districts (Alpha Phi Alpha v. Raffensperger, Oct 26 2023)
+// SD 10, 16, 17, 25, 28, 30, 34, 35, 43, 44
+// ============================================================
+const SEN_VRA = new Set(['10','16','17','25','28','30','34','35','43','44']);
+// Court-created new majority-Black districts in 2023 remedial map (south-metro Atlanta)
+const SEN_NEW = new Set(['28','35']);
+// Senate party defaults: Republican majority. Atlanta/DeKalb/Fulton core, Athens, Augusta corridor Dem-leaning.
+const SEN_DEM = new Set(['6','7','9','10','15','22','35','36','38','39','41','42','43','44','55']);
+const SEN_REGIONS = {
+  '10':'South metro Atlanta', '16':'Macon corridor','17':'Macon-Bibb',
+  '22':'Augusta (Sen. Harold Jones II, Minority Leader)','23':'East Georgia',
+  '25':'Black Belt corridor','28':'South metro Atlanta (court-created)',
+  '30':'West-central Black Belt','34':'South metro','35':'South metro (court-created)',
+  '43':'Augusta corridor','44':'Black Belt corridor'
 };
+
+// ============================================================
+// STATE HOUSE: VRA-violating districts
+// HD 61, 64, 74, 78, 117, 133, 142, 143, 145, 147, 149
+// ============================================================
+const HSE_VRA = new Set(['61','64','74','78','117','133','142','143','145','147','149']);
+// Court-created (5 new majority-Black) per Grant + Alpha plaintiffs (Cobb/Douglas/Fulton/Henry + SW Ga)
+const HSE_NEW = new Set(['61','64','78','142','149']);
+// Athens-area districts that split the city
+const HSE_ATHENS = new Set(['117','119','120','121']);
+// Dem-leaning House districts (urban Atlanta, DeKalb, parts of Fulton, Athens, Savannah, Columbus, Macon, Albany, Augusta)
+// This is intentionally approximate for visualization; the precise 100R/80D rollup is in the stat strip.
+const HSE_DEM = new Set([
+  '37','39','40','41','42','43','46','51','52','53','54','55','56','57','58','59','60','61','62','63','64','65','66','67','68','69','70','71','72','73','74','75','76','77','78','79','80','81','82','83','84','85','86','87','88','89','90','91','92','93','94','95','96','97','98','99','100','101','116','117','118','127','128','129','130','131','132','133','141','142','143','144','145','149','150','151','152','153','165','170','173'
+]);
+const HSE_REGIONS = {
+  '61':'Cobb/Douglas (court-created 2023)','64':'Cobb/Douglas (court-created 2023)','74':'South Fulton',
+  '78':'Henry County (court-created 2023)','117':'Athens-Clarke (court-flagged)',
+  '119':'Athens area','120':'Athens area','121':'Athens area',
+  '133':'Macon-Bibb','142':'Black Belt corridor (court-created 2023)','143':'Black Belt',
+  '145':'Black Belt corridor','147':'Black Belt corridor','149':'Southwest Georgia (court-created 2023)'
+};
+
+const COLORS = {'D': '#3D7B89','R': '#A84B2F'};
 const RISK_LABEL = {
   'high': 'High risk: prime redraw target',
   'med':  'Medium risk: could shift in a wider redraw',
   'low':  'Low risk: not a likely target'
 };
-const RISK_CLASS = {
-  'high': 'high',
-  'med':  'med',
-  'low':  'low'
-};
 
-// Initialize map
-const map = L.map('map', {
-  center: [32.7, -83.5],
-  zoom: 7,
-  zoomControl: true,
-  attributionControl: true,
-  scrollWheelZoom: false
+// ============================================================
+// CHAMBER SWITCHER
+// ============================================================
+const maps = {us: null, senate: null, house: null};
+const layers = {us: null, senate: null, house: null};
+
+document.querySelectorAll('.chamber-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.chamber-tab').forEach(b => {
+      b.classList.remove('on');
+      b.setAttribute('aria-selected', 'false');
+    });
+    btn.classList.add('on');
+    btn.setAttribute('aria-selected', 'true');
+    const c = btn.dataset.chamber;
+    document.querySelectorAll('.chamber-view').forEach(v => v.classList.remove('active'));
+    document.getElementById('view-' + c).classList.add('active');
+    // Initialize map if not yet built; invalidate size in any case (Leaflet needs this after un-hide)
+    initMap(c);
+    setTimeout(() => { if (maps[c]) maps[c].invalidateSize(); }, 50);
+  });
 });
 
-// Light tile background
-L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
-  maxZoom: 18,
-  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
-}).addTo(map);
-
-// District style
-function styleDistrict(feature) {
-  const num = feature.properties.BASENAME;
-  const d = DISTRICTS[num];
-  if (!d) return {color:'#888',weight:1,fillOpacity:0.3};
-  return {
-    color: '#FBFAF6',
-    weight: 1.5,
-    opacity: 1,
-    fillColor: COLORS[d.party],
-    fillOpacity: d.risk === 'high' ? 0.85 : (d.risk === 'med' ? 0.7 : 0.55),
-    dashArray: d.risk === 'high' ? '5,4' : null
-  };
+// ============================================================
+// MAP BUILDERS
+// ============================================================
+function initMap(chamber) {
+  if (maps[chamber]) return;
+  if (chamber === 'us') buildCongressMap();
+  else if (chamber === 'senate') buildSenateMap();
+  else if (chamber === 'house') buildHouseMap();
 }
 
-let geoLayer;
-let geoData;
+function makeLeafletMap(elId) {
+  const m = L.map(elId, {
+    center: [32.7, -83.5], zoom: 7, zoomControl: true,
+    attributionControl: true, scrollWheelZoom: false
+  });
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
+    maxZoom: 18,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+  }).addTo(m);
+  return m;
+}
 
-fetch('ga_cd119_compact.json')
-  .then(r => r.json())
-  .then(data => {
-    geoData = data;
-    geoLayer = L.geoJSON(data, {
-      style: styleDistrict,
-      onEachFeature: (feature, layer) => {
+// --- US House (congressional) map ---
+function buildCongressMap() {
+  const m = makeLeafletMap('map-us');
+  maps.us = m;
+
+  function styleCD(feature) {
+    const num = feature.properties.BASENAME;
+    const d = CD_DISTRICTS[num];
+    if (!d) return {color:'#888',weight:1,fillOpacity:0.3};
+    return {
+      color: '#FBFAF6', weight: 1.5, opacity: 1,
+      fillColor: COLORS[d.party],
+      fillOpacity: d.risk === 'high' ? 0.85 : (d.risk === 'med' ? 0.7 : 0.55),
+      dashArray: d.risk === 'high' ? '5,4' : null
+    };
+  }
+
+  fetch('ga_cd119_compact.json').then(r => r.json()).then(data => {
+    const layer = L.geoJSON(data, {
+      style: styleCD,
+      onEachFeature: (feature, lyr) => {
         const num = feature.properties.BASENAME;
-        const d = DISTRICTS[num];
+        const d = CD_DISTRICTS[num];
         if (!d) return;
-        const html = `
+        const riskClass = d.risk;
+        lyr.bindPopup(`
           <div class="pop-num">District ${num}</div>
           <div class="pop-name">${d.rep}</div>
           <div class="pop-rep">${d.party === 'D' ? 'Democratic' : 'Republican'} &middot; CPVI ${d.cpvi}</div>
           <div class="pop-cpvi">${d.notes}</div>
-          <div class="pop-risk ${RISK_CLASS[d.risk]}">${RISK_LABEL[d.risk]}</div>
-        `;
-        layer.bindPopup(html);
-        layer.on('mouseover', () => layer.setStyle({weight: 3, color: '#1F3A5F'}));
-        layer.on('mouseout', () => geoLayer.resetStyle(layer));
+          <div class="pop-risk ${riskClass}">${RISK_LABEL[d.risk]}</div>
+        `);
+        lyr.on('mouseover', () => lyr.setStyle({weight: 3, color: '#1F3A5F'}));
+        lyr.on('mouseout', () => layer.resetStyle(lyr));
 
-        // District number label
-        const center = layer.getBounds().getCenter();
+        const center = lyr.getBounds().getCenter();
         L.marker(center, {
           icon: L.divIcon({
             className: 'cd-label',
             html: `<div style="background:rgba(255,255,255,0.92);border:1px solid #1F3A5F;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#1F3A5F;font-size:13px;box-shadow:0 1px 2px rgba(0,0,0,0.15);">${num}</div>`,
-            iconSize: [28, 28],
-            iconAnchor: [14, 14]
+            iconSize: [28, 28], iconAnchor: [14, 14]
           }),
           interactive: false
-        }).addTo(map);
+        }).addTo(m);
       }
-    }).addTo(map);
-    map.fitBounds(geoLayer.getBounds(), {padding: [20, 20]});
-  })
-  .catch(err => {
-    document.getElementById('map').innerHTML = '<div style="padding:40px;text-align:center;color:#A84B2F;">Map failed to load. Data file missing.</div>';
+    }).addTo(m);
+    layers.us = {layer, data, style: styleCD};
+    m.fitBounds(layer.getBounds(), {padding: [20, 20]});
+  }).catch(err => {
+    document.getElementById('map-us').innerHTML = '<div style="padding:40px;text-align:center;color:#A84B2F;">Map failed to load.</div>';
     console.error(err);
   });
+}
 
-// Filter buttons
-document.querySelectorAll('.chip[data-filter]').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.chip[data-filter]').forEach(b => b.classList.remove('on'));
-    btn.classList.add('on');
-    const f = btn.dataset.filter;
-    if (!geoLayer) return;
-    geoLayer.eachLayer(layer => {
-      const num = layer.feature.properties.BASENAME;
-      const d = DISTRICTS[num];
-      let show = true;
-      if (f === 'dem') show = d.party === 'D';
-      else if (f === 'rep') show = d.party === 'R';
-      else if (f === 'risk') show = d.risk === 'high' || d.risk === 'med';
-      layer.setStyle(show ? styleDistrict(layer.feature) : {fillOpacity: 0.05, opacity: 0.15, color: '#999'});
+// --- State Senate map ---
+function buildSenateMap() {
+  const m = makeLeafletMap('map-senate');
+  maps.senate = m;
+
+  function styleSD(feature) {
+    const num = feature.properties.BASENAME;
+    const party = SEN_DEM.has(num) ? 'D' : 'R';
+    const isVRA = SEN_VRA.has(num);
+    return {
+      color: '#FBFAF6', weight: 0.8, opacity: 1,
+      fillColor: COLORS[party],
+      fillOpacity: isVRA ? 0.85 : 0.55,
+      dashArray: isVRA ? '5,4' : null
+    };
+  }
+
+  fetch('ga_sldu_compact.json').then(r => r.json()).then(data => {
+    const layer = L.geoJSON(data, {
+      style: styleSD,
+      onEachFeature: (feature, lyr) => {
+        const num = feature.properties.BASENAME;
+        const party = SEN_DEM.has(num) ? 'D' : 'R';
+        const isVRA = SEN_VRA.has(num);
+        const isNew = SEN_NEW.has(num);
+        const region = SEN_REGIONS[num] || '';
+        const riskClass = isVRA ? 'high' : 'low';
+        const riskText = isVRA
+          ? (isNew ? 'Court-created in 2023. Prime target of any post-Callais redraw.'
+                   : 'Found by federal court to violate the VRA in 2023. At risk of being redrawn.')
+          : 'Not flagged by the 2023 court order.';
+        lyr.bindPopup(`
+          <div class="pop-num">Senate District ${num}</div>
+          <div class="pop-name">${region || 'Georgia State Senate'}</div>
+          <div class="pop-rep">${party === 'D' ? 'Democratic-leaning' : 'Republican-leaning'}</div>
+          ${isVRA ? `<div class="pop-cpvi"><b>Court finding:</b> Alpha Phi Alpha v. Raffensperger (Oct. 2023) listed SD-${num} among districts that diluted Black voting strength under Section 2 of the VRA.</div>` : ''}
+          <div class="pop-risk ${riskClass}">${riskText}</div>
+        `);
+        lyr.on('mouseover', () => lyr.setStyle({weight: 2.5, color: '#1F3A5F'}));
+        lyr.on('mouseout', () => layer.resetStyle(lyr));
+      }
+    }).addTo(m);
+    layers.senate = {layer, data, style: styleSD};
+    m.fitBounds(layer.getBounds(), {padding: [20, 20]});
+
+    // Labels only for VRA-flagged districts to avoid clutter (10 labels vs 56)
+    layer.eachLayer(lyr => {
+      const num = lyr.feature.properties.BASENAME;
+      if (!SEN_VRA.has(num)) return;
+      const center = lyr.getBounds().getCenter();
+      L.marker(center, {
+        icon: L.divIcon({
+          className: 'sl-label',
+          html: `<div style="background:rgba(255,255,255,0.95);border:1px solid #A84B2F;border-radius:4px;padding:1px 5px;font-weight:700;color:#A84B2F;font-size:11px;">${num}</div>`,
+          iconSize: [24, 16], iconAnchor: [12, 8]
+        }),
+        interactive: false
+      }).addTo(m);
+    });
+  }).catch(err => {
+    document.getElementById('map-senate').innerHTML = '<div style="padding:40px;text-align:center;color:#A84B2F;">Map failed to load.</div>';
+    console.error(err);
+  });
+}
+
+// --- State House map ---
+function buildHouseMap() {
+  const m = makeLeafletMap('map-house');
+  maps.house = m;
+
+  function styleHD(feature) {
+    const num = feature.properties.BASENAME;
+    const party = HSE_DEM.has(num) ? 'D' : 'R';
+    const isVRA = HSE_VRA.has(num);
+    const isAthens = HSE_ATHENS.has(num);
+    if (isAthens && !isVRA) {
+      return {color: '#7A5410', weight: 1.2, opacity: 1, fillColor: '#FCEFCB', fillOpacity: 0.75};
+    }
+    return {
+      color: '#FBFAF6', weight: 0.5, opacity: 1,
+      fillColor: COLORS[party],
+      fillOpacity: isVRA ? 0.85 : 0.55,
+      dashArray: isVRA ? '4,3' : null
+    };
+  }
+
+  fetch('ga_sldl_compact.json').then(r => r.json()).then(data => {
+    const layer = L.geoJSON(data, {
+      style: styleHD,
+      onEachFeature: (feature, lyr) => {
+        const num = feature.properties.BASENAME;
+        const party = HSE_DEM.has(num) ? 'D' : 'R';
+        const isVRA = HSE_VRA.has(num);
+        const isNew = HSE_NEW.has(num);
+        const isAthens = HSE_ATHENS.has(num);
+        const region = HSE_REGIONS[num] || '';
+        const riskClass = isVRA ? 'high' : (isAthens ? 'med' : 'low');
+        let riskText = 'Not flagged by the 2023 court order.';
+        if (isVRA) {
+          riskText = isNew
+            ? 'Court-created in 2023. Prime target of any post-Callais redraw.'
+            : 'Found by federal court to violate the VRA in 2023. At risk of being redrawn.';
+        } else if (isAthens) {
+          riskText = 'Splits Athens-Clarke County. Created in the 2022 redraw that divided Athens across 4 House districts.';
+        }
+        lyr.bindPopup(`
+          <div class="pop-num">House District ${num}</div>
+          <div class="pop-name">${region || 'Georgia State House'}</div>
+          <div class="pop-rep">${party === 'D' ? 'Democratic-leaning' : 'Republican-leaning'}</div>
+          ${isVRA ? `<div class="pop-cpvi"><b>Court finding:</b> Alpha Phi Alpha v. Raffensperger (Oct. 2023) listed HD-${num} among districts that diluted Black voting strength under Section 2 of the VRA.</div>` : ''}
+          ${isAthens && !isVRA ? `<div class="pop-cpvi"><b>Athens split:</b> One of four House districts that divide Athens-Clarke County. The 2022 redraw split a 129,000-person Democratic-leaning city across 4 House and 2 Senate districts.</div>` : ''}
+          <div class="pop-risk ${riskClass}">${riskText}</div>
+        `);
+        lyr.on('mouseover', () => lyr.setStyle({weight: 2, color: '#1F3A5F'}));
+        lyr.on('mouseout', () => layer.resetStyle(lyr));
+      }
+    }).addTo(m);
+    layers.house = {layer, data, style: styleHD};
+    m.fitBounds(layer.getBounds(), {padding: [20, 20]});
+
+    // Labels only for VRA-flagged + Athens-split districts (15 total)
+    layer.eachLayer(lyr => {
+      const num = lyr.feature.properties.BASENAME;
+      if (!HSE_VRA.has(num) && !HSE_ATHENS.has(num)) return;
+      const center = lyr.getBounds().getCenter();
+      const isVRA = HSE_VRA.has(num);
+      const borderColor = isVRA ? '#A84B2F' : '#7A5410';
+      L.marker(center, {
+        icon: L.divIcon({
+          className: 'sl-label',
+          html: `<div style="background:rgba(255,255,255,0.95);border:1px solid ${borderColor};border-radius:4px;padding:1px 5px;font-weight:700;color:${borderColor};font-size:10px;">${num}</div>`,
+          iconSize: [22, 14], iconAnchor: [11, 7]
+        }),
+        interactive: false
+      }).addTo(m);
+    });
+  }).catch(err => {
+    document.getElementById('map-house').innerHTML = '<div style="padding:40px;text-align:center;color:#A84B2F;">Map failed to load.</div>';
+    console.error(err);
+  });
+}
+
+// ============================================================
+// FILTERS (per chamber)
+// ============================================================
+document.querySelectorAll('.filter-btns').forEach(group => {
+  const chamber = group.dataset.filterGroup;
+  group.querySelectorAll('.chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      group.querySelectorAll('.chip').forEach(b => b.classList.remove('on'));
+      btn.classList.add('on');
+      const f = btn.dataset.filter;
+      const ctx = layers[chamber];
+      if (!ctx) return;
+      ctx.layer.eachLayer(lyr => {
+        const num = lyr.feature.properties.BASENAME;
+        let show = true;
+        if (chamber === 'us') {
+          const d = CD_DISTRICTS[num];
+          if (f === 'dem') show = d.party === 'D';
+          else if (f === 'rep') show = d.party === 'R';
+          else if (f === 'risk') show = d.risk === 'high' || d.risk === 'med';
+        } else if (chamber === 'senate') {
+          if (f === 'vra') show = SEN_VRA.has(num);
+          else if (f === 'court') show = SEN_NEW.has(num);
+          else if (f === 'risk') show = SEN_VRA.has(num);
+        } else if (chamber === 'house') {
+          if (f === 'vra') show = HSE_VRA.has(num);
+          else if (f === 'court') show = HSE_NEW.has(num);
+          else if (f === 'athens') show = HSE_ATHENS.has(num);
+        }
+        lyr.setStyle(show ? ctx.style(lyr.feature) : {fillOpacity: 0.05, opacity: 0.15, color: '#999', weight: 0.5});
+      });
     });
   });
 });
+
+// Initialize the default visible map
+initMap('us');
 </script>
 
 </body>
