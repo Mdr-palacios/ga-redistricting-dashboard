@@ -1,0 +1,550 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Georgia Redistricting Dashboard | Common Cause Georgia</title>
+<meta name="description" content="A plain-language dashboard on Georgia's congressional map, how new maps are drawn, what state law requires, and the scenarios on the table for the June 17, 2026 special session.">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<style>
+  :root {
+    --navy: #1F3A5F;
+    --navy-deep: #14263F;
+    --teal: #3D7B89;
+    --sky: #A9CBE0;
+    --pale: #DDEAF3;
+    --paler: #EEF4FA;
+    --ink: #2C2A26;
+    --grey: #6B6A66;
+    --grey-light: #BFBEB9;
+    --rose: #C97B8A;
+    --warn: #A84B2F;
+    --bg: #FBFAF6;
+    --card: #FFFFFF;
+    --border: #E4E2DC;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Calibri,Arial,sans-serif;line-height:1.55;}
+  a{color:var(--teal);text-decoration:none;}
+  a:hover{text-decoration:underline;}
+  .wrap{max-width:1200px;margin:0 auto;padding:0 24px;}
+
+  /* Header */
+  header.top{background:var(--navy);color:#fff;padding:36px 0 28px;border-bottom:6px solid var(--sky);}
+  header.top .eyebrow{color:var(--sky);font-size:14px;letter-spacing:0.15em;text-transform:uppercase;font-weight:700;margin-bottom:10px;}
+  header.top h1{margin:0 0 8px;font-size:40px;line-height:1.15;font-weight:700;}
+  header.top .sub{color:var(--pale);font-size:17px;max-width:780px;}
+  header.top .meta{margin-top:18px;color:var(--sky);font-size:13px;}
+  header.top .meta b{color:#fff;}
+
+  /* Section */
+  section{padding:56px 0;border-bottom:1px solid var(--border);}
+  section h2{margin:0 0 6px;font-size:30px;color:var(--navy);font-weight:700;line-height:1.2;}
+  section .lede{color:var(--grey);font-size:17px;margin:0 0 28px;max-width:780px;}
+
+  /* Map section */
+  .map-wrap{display:grid;grid-template-columns:1fr 320px;gap:24px;}
+  @media (max-width:880px){.map-wrap{grid-template-columns:1fr;}}
+  #map{height:580px;border-radius:8px;border:1px solid var(--border);background:#fff;}
+  .leaflet-container{font-family:inherit;background:#FBFAF6;}
+  .leaflet-popup-content-wrapper{border-radius:6px;}
+  .leaflet-popup-content{margin:12px 14px;line-height:1.45;font-family:inherit;}
+  .pop-num{font-size:13px;color:var(--teal);font-weight:700;letter-spacing:0.05em;text-transform:uppercase;}
+  .pop-name{font-size:18px;font-weight:700;color:var(--navy);margin:2px 0 6px;}
+  .pop-rep{font-size:14px;color:var(--ink);}
+  .pop-cpvi{font-size:13px;color:var(--grey);margin-top:6px;}
+  .pop-risk{margin-top:8px;padding:6px 10px;border-radius:4px;font-size:13px;font-weight:600;}
+  .pop-risk.high{background:#F5DCD2;color:var(--warn);}
+  .pop-risk.med{background:#FCEFCB;color:#7A5410;}
+  .pop-risk.low{background:#DDEAF3;color:var(--navy);}
+
+  /* Map sidebar */
+  .map-side{display:flex;flex-direction:column;gap:14px;}
+  .legend-card,.filter-card,.info-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;}
+  .legend-card h3,.filter-card h3,.info-card h3{margin:0 0 10px;font-size:14px;color:var(--navy);letter-spacing:0.05em;text-transform:uppercase;font-weight:700;}
+  .legend-row{display:flex;align-items:center;gap:10px;font-size:14px;margin:6px 0;}
+  .legend-swatch{width:18px;height:14px;border-radius:3px;flex-shrink:0;border:1px solid rgba(0,0,0,0.08);}
+  .filter-btns{display:flex;flex-direction:column;gap:6px;}
+  .chip{display:block;width:100%;text-align:left;padding:9px 12px;border-radius:6px;border:1px solid var(--border);background:#fff;color:var(--ink);font:inherit;font-size:14px;cursor:pointer;transition:all 0.15s;}
+  .chip.on{background:var(--navy);color:#fff;border-color:var(--navy);font-weight:600;}
+  .chip:hover:not(.on){background:var(--paler);}
+  .info-card p{margin:0 0 8px;font-size:14px;color:var(--grey);}
+  .info-card p:last-child{margin-bottom:0;}
+  .info-card b{color:var(--ink);}
+
+  /* Two column content */
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:32px;}
+  @media (max-width:760px){.two-col{grid-template-columns:1fr;}}
+  .step-list{counter-reset:step;list-style:none;padding:0;margin:0;}
+  .step-list li{counter-increment:step;position:relative;padding:14px 16px 14px 60px;margin-bottom:10px;background:var(--card);border:1px solid var(--border);border-radius:8px;}
+  .step-list li::before{content:counter(step);position:absolute;left:14px;top:14px;width:34px;height:34px;border-radius:50%;background:var(--navy);color:#fff;font-weight:700;font-size:16px;display:flex;align-items:center;justify-content:center;}
+  .step-list li b{display:block;font-size:17px;color:var(--navy);margin-bottom:2px;}
+  .step-list li span{font-size:15px;color:var(--ink);}
+
+  /* Law cards */
+  .law-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;}
+  @media (max-width:760px){.law-grid{grid-template-columns:1fr;}}
+  .law-card{background:var(--card);border:1px solid var(--border);border-left:none;border-radius:8px;padding:18px 20px;position:relative;overflow:hidden;}
+  .law-card .req-tag{display:inline-block;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;color:#fff;padding:3px 8px;border-radius:3px;margin-bottom:8px;}
+  .law-card.required .req-tag{background:var(--navy);}
+  .law-card.absent .req-tag{background:var(--warn);}
+  .law-card h3{margin:0 0 6px;font-size:18px;color:var(--navy);}
+  .law-card p{margin:0;font-size:14px;color:var(--ink);}
+  .law-card .src{margin-top:10px;font-size:12px;color:var(--grey);}
+
+  /* Scenarios */
+  .scenario{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:24px;margin-bottom:18px;}
+  .scenario .scen-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:12px;}
+  .scenario .scen-num{font-size:14px;color:var(--teal);font-weight:700;letter-spacing:0.1em;text-transform:uppercase;}
+  .scenario h3{margin:0;font-size:22px;color:var(--navy);font-weight:700;}
+  .scenario .likelihood{margin-left:auto;font-size:12px;letter-spacing:0.05em;text-transform:uppercase;font-weight:700;padding:4px 10px;border-radius:4px;}
+  .likelihood.high{background:#F5DCD2;color:var(--warn);}
+  .likelihood.med{background:#FCEFCB;color:#7A5410;}
+  .likelihood.low{background:var(--pale);color:var(--navy);}
+  .scenario .scen-body{display:grid;grid-template-columns:2fr 1fr;gap:24px;}
+  @media (max-width:760px){.scenario .scen-body{grid-template-columns:1fr;}}
+  .scenario p{margin:0 0 10px;font-size:15px;}
+  .scenario .impacts{background:var(--paler);border-radius:6px;padding:14px 16px;}
+  .scenario .impacts h4{margin:0 0 8px;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;color:var(--navy);}
+  .scenario .impacts ul{margin:0;padding-left:18px;font-size:14px;color:var(--ink);}
+  .scenario .impacts li{margin-bottom:4px;}
+
+  /* Footer */
+  footer.foot{background:var(--navy-deep);color:var(--pale);padding:36px 0;}
+  footer.foot a{color:var(--sky);}
+  footer.foot .row{display:flex;justify-content:space-between;flex-wrap:wrap;gap:20px;font-size:14px;}
+  footer.foot .brand{color:#fff;font-weight:700;font-size:17px;margin-bottom:6px;}
+
+  /* Stat strip */
+  .stat-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:0;background:var(--paler);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:24px;}
+  @media (max-width:760px){.stat-strip{grid-template-columns:repeat(2,1fr);}}
+  .stat-strip .cell{padding:18px 16px;border-right:1px solid var(--border);}
+  .stat-strip .cell:last-child{border-right:none;}
+  .stat-strip .num{font-size:32px;font-weight:700;color:var(--navy);line-height:1;}
+  .stat-strip .lbl{font-size:13px;color:var(--grey);margin-top:6px;}
+
+  /* Source line */
+  .source-line{margin-top:14px;font-size:13px;color:var(--grey);}
+  .source-line a{color:var(--teal);font-weight:600;}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div class="eyebrow">Common Cause Georgia &middot; Voter Education</div>
+    <h1>Drawing the Lines: A Georgia Redistricting Dashboard</h1>
+    <p class="sub">The 14 congressional districts you live in, how new maps get drawn, what state law actually requires, and the scenarios on the table for the June 17, 2026 special session.</p>
+    <div class="meta">Updated May 2026 &middot; <b>Special session:</b> June 17, 2026 &middot; <b>Triggered by:</b> Callais v. Landry (US Supreme Court)</div>
+  </div>
+</header>
+
+<!-- SECTION 1: THE MAP -->
+<section id="map-section">
+  <div class="wrap">
+    <h2>The current Georgia map.</h2>
+    <p class="lede">The 14 congressional districts in effect today, redrawn in 2023 after the Allen v. Milligan ruling. Click any district to see who represents it, the partisan lean, and how vulnerable it is to a redraw.</p>
+
+    <div class="stat-strip">
+      <div class="cell"><div class="num">14</div><div class="lbl">Congressional districts</div></div>
+      <div class="cell"><div class="num">4</div><div class="lbl">Held by Democrats today</div></div>
+      <div class="cell"><div class="num">2</div><div class="lbl">Majority-Black districts (GA-2, GA-13)</div></div>
+      <div class="cell"><div class="num">June 17</div><div class="lbl">Special session convenes</div></div>
+    </div>
+
+    <div class="map-wrap">
+      <div id="map" role="img" aria-label="Map of Georgia's 14 congressional districts"></div>
+
+      <div class="map-side">
+        <div class="filter-card">
+          <h3>Filter districts</h3>
+          <div class="filter-btns">
+            <button class="chip on" data-filter="all">All 14 districts</button>
+            <button class="chip" data-filter="dem">Democratic-held (4)</button>
+            <button class="chip" data-filter="rep">Republican-held (10)</button>
+            <button class="chip" data-filter="risk">At-risk in any redraw</button>
+          </div>
+        </div>
+
+        <div class="legend-card">
+          <h3>Map legend</h3>
+          <div class="legend-row"><span class="legend-swatch" style="background:#3D7B89;"></span><span>Democratic-held</span></div>
+          <div class="legend-row"><span class="legend-swatch" style="background:#A84B2F;"></span><span>Republican-held</span></div>
+          <div class="legend-row"><span class="legend-swatch" style="background:#1F3A5F;border:2px dashed #fff;outline:1px solid #1F3A5F;"></span><span>Majority-Black district</span></div>
+          <div class="legend-row"><span class="legend-swatch" style="background:repeating-linear-gradient(45deg,#A84B2F 0 4px,#fff 4px 8px);"></span><span>At-risk in a redraw</span></div>
+        </div>
+
+        <div class="info-card">
+          <h3>What you are seeing</h3>
+          <p>The 2023 map after <b>Allen v. Milligan</b>, drawn under the assumption that Section 2 of the Voting Rights Act still required majority-Black districts.</p>
+          <p>The June 17 special session may revisit these lines. <a href="#scenarios">See potential scenarios</a>.</p>
+        </div>
+      </div>
+    </div>
+
+    <p class="source-line">District boundaries: <a href="https://tigerweb.geo.census.gov/" target="_blank" rel="noopener">US Census TIGERweb</a>. Representatives and CPVI: <a href="https://en.wikipedia.org/wiki/Georgia%27s_congressional_districts" target="_blank" rel="noopener">Georgia's congressional districts</a>, <a href="https://www.cookpolitical.com/cook-pvi" target="_blank" rel="noopener">Cook Political Report</a>.</p>
+  </div>
+</section>
+
+<!-- SECTION 2: HOW MAPS ARE DRAWN -->
+<section id="process">
+  <div class="wrap">
+    <h2>How maps get drawn in Georgia.</h2>
+    <p class="lede">Most states use commissions, citizen panels, or courts. Georgia is one of a shrinking number where the state legislature itself draws the maps that elect the legislature. Here is the actual process, step by step.</p>
+
+    <div class="two-col">
+      <ol class="step-list">
+        <li><b>The Governor calls the legislature in.</b><span>A redistricting bill can move during the regular session or in a special session called by the Governor. Gov. Kemp called the June 17, 2026 special session on May 13.</span></li>
+        <li><b>House and Senate Reapportionment Committees draft proposed maps.</b><span>These committees hold the pen. They get help from the Legislative and Congressional Reapportionment Office, which provides population data and software.</span></li>
+        <li><b>Public hearings happen, sometimes.</b><span>Georgia law does not require a fixed number of public hearings or a public comment window. In past redraws, hearings have ranged from one weekend listening tour to a single committee meeting.</span></li>
+        <li><b>Each chamber passes its maps.</b><span>House passes the House map and the congressional map. Senate passes the Senate map and the congressional map. Maps move as regular bills, by simple majority.</span></li>
+        <li><b>The Governor signs the maps into law.</b><span>No separate ratification, no voter approval, no independent review board.</span></li>
+        <li><b>Courts may strike them down.</b><span>This is the only meaningful check. Federal Voting Rights Act lawsuits forced Georgia to redraw in 2023 (<i>Alpha Phi Alpha v. Raffensperger</i>). State-court challenges are also possible under the Georgia Constitution.</span></li>
+      </ol>
+
+      <div>
+        <div class="info-card" style="margin-bottom:14px;">
+          <h3>Who actually holds the pen</h3>
+          <p><b>House:</b> Rep. Rob Leverett chairs the House Reapportionment Committee.</p>
+          <p><b>Senate:</b> Sen. Shelly Echols chairs the Senate Reapportionment Committee.</p>
+          <p>Both committees are majority-Republican, reflecting the legislature's makeup.</p>
+        </div>
+        <div class="info-card">
+          <h3>Where the public actually fits in</h3>
+          <p>The only formal opportunities are (1) submitting a written comment to the committees, (2) signing up to testify at a hearing if one is announced, and (3) the public hearing on the floor when a bill is debated.</p>
+          <p>There is no Georgia equivalent of California's Citizens Redistricting Commission. Voters do not get a direct vote on the maps.</p>
+        </div>
+      </div>
+    </div>
+
+    <p class="source-line">Process source: <a href="https://www.legis.ga.gov/committees/reapportionment-and-redistricting/2023RS" target="_blank" rel="noopener">Georgia General Assembly Reapportionment</a>, <a href="https://www.legis.ga.gov/api/document/docs/default-source/reapportionment-document-library/2021-rules.pdf" target="_blank" rel="noopener">House and Senate Reapportionment rules</a>, <a href="https://ballotpedia.org/Redistricting_in_Georgia" target="_blank" rel="noopener">Ballotpedia: Redistricting in Georgia</a>.</p>
+  </div>
+</section>
+
+<!-- SECTION 3: WHAT STATE LAW REQUIRES -->
+<section id="law">
+  <div class="wrap">
+    <h2>What Georgia state law actually requires.</h2>
+    <p class="lede">Short answer: less than most people assume. Georgia has one of the thinner statutory frameworks for redistricting in the country. Here is what is required, and what is conspicuously not.</p>
+
+    <div class="law-grid">
+      <div class="law-card required">
+        <span class="req-tag">Required</span>
+        <h3>Equal population</h3>
+        <p>Congressional districts must have nearly equal population (within roughly 1%). State legislative districts can vary up to about 10%. Both rules come from federal law, not state law.</p>
+        <div class="src">Source: US Constitution, Reynolds v. Sims (1964).</div>
+      </div>
+
+      <div class="law-card required">
+        <span class="req-tag">Required</span>
+        <h3>Compliance with the federal Voting Rights Act</h3>
+        <p>Maps cannot dilute the votes of racial minorities under Section 2 of the VRA. This is the rule the US Supreme Court partially narrowed in Callais v. Landry, and the immediate reason the June 17 special session is happening.</p>
+        <div class="src">Source: Voting Rights Act of 1965, Section 2. Allen v. Milligan (2023). Callais v. Landry (2026).</div>
+      </div>
+
+      <div class="law-card required">
+        <span class="req-tag">Required</span>
+        <h3>Contiguous districts</h3>
+        <p>Every district must be one connected piece. You cannot have an island of a district separated from the rest. Georgia code requires this for both state legislative and congressional maps.</p>
+        <div class="src">Source: O.C.G.A. Title 28, House and Senate guidelines.</div>
+      </div>
+
+      <div class="law-card required">
+        <span class="req-tag">Required</span>
+        <h3>Maps passed by the General Assembly</h3>
+        <p>The legislature, not a commission or a court, draws the lines. The Governor signs them. This is the structural choice that puts everything else downstream of partisan control.</p>
+        <div class="src">Source: Georgia Constitution, Article III.</div>
+      </div>
+
+      <div class="law-card absent">
+        <span class="req-tag">Not required</span>
+        <h3>A minimum number of public hearings</h3>
+        <p>State law does not set a floor for how many public hearings must be held, where they must happen, or how much notice the public must get. Each redistricting cycle, the chambers set their own schedule.</p>
+        <div class="src">Compare: California requires at least 14 hearings. Michigan requires at least 15.</div>
+      </div>
+
+      <div class="law-card absent">
+        <span class="req-tag">Not required</span>
+        <h3>An independent or citizen commission</h3>
+        <p>Georgia has no redistricting commission. Lines are drawn by the same legislators who run in those lines. This is the structural conflict of interest that voter advocates have asked the legislature to fix since the 1990s.</p>
+        <div class="src">Compare: Arizona, California, Colorado, Michigan, and 11 other states use a commission of some kind.</div>
+      </div>
+
+      <div class="law-card absent">
+        <span class="req-tag">Not required</span>
+        <h3>Respect for communities of interest</h3>
+        <p>Most modern redistricting standards include a duty to keep neighborhoods, school districts, or cultural communities together. Georgia does not.</p>
+        <div class="src">Compare: California, Michigan, Colorado all list "communities of interest" as a required criterion.</div>
+      </div>
+
+      <div class="law-card absent">
+        <span class="req-tag">Not required</span>
+        <h3>A ban on partisan gerrymandering</h3>
+        <p>Georgia law does not prohibit drawing maps to advantage one political party. The US Supreme Court ruled in Rucho v. Common Cause (2019) that federal courts will not hear partisan gerrymandering claims. State courts can in theory, but Georgia courts have not done so.</p>
+        <div class="src">Source: Rucho v. Common Cause (2019). Common Cause has urged the Georgia General Assembly to adopt explicit anti-gerrymandering language since 2019.</div>
+      </div>
+    </div>
+
+    <p class="source-line">Source: <a href="https://www.legis.ga.gov/api/document/docs/default-source/reapportionment-document-library/2021-rules.pdf" target="_blank" rel="noopener">Georgia House and Senate Reapportionment Rules</a>, <a href="https://ballotpedia.org/Redistricting_in_Georgia" target="_blank" rel="noopener">Ballotpedia</a>, <a href="https://www.ncsl.org/elections-and-campaigns/redistricting-criteria" target="_blank" rel="noopener">NCSL: Redistricting Criteria</a>, <a href="https://www.brennancenter.org/our-work/research-reports/redistricting-commissions-state-experiences" target="_blank" rel="noopener">Brennan Center</a>.</p>
+  </div>
+</section>
+
+<!-- SECTION 4: SCENARIOS -->
+<section id="scenarios">
+  <div class="wrap">
+    <h2>Potential map-drawing scenarios for June 17.</h2>
+    <p class="lede">After the Callais decision, the US Supreme Court left states more room to revisit majority-minority districts. These are the four most plausible paths the General Assembly could take when it convenes on June 17, 2026.</p>
+
+    <div class="scenario">
+      <div class="scen-head">
+        <span class="scen-num">Scenario 1</span>
+        <h3>Hold the line</h3>
+        <span class="likelihood low">Low likelihood</span>
+      </div>
+      <div class="scen-body">
+        <div>
+          <p>The General Assembly does nothing on congressional or state legislative maps and uses the special session to address only the SB 189 voting system fix.</p>
+          <p>This would leave the 2023 map (with GA-2 and GA-13 as majority-Black districts) intact through the 2028 election.</p>
+          <p><b>Why it could happen:</b> Strong public pressure, fear of lawsuits, federal litigation still pending. Some leadership voices have said off the record they would rather not reopen the maps.</p>
+          <p><b>Why it might not:</b> The Callais opening is too tempting to ignore for some members, and outside groups are actively pushing for a redraw.</p>
+        </div>
+        <div class="impacts">
+          <h4>If this happens</h4>
+          <ul>
+            <li>Current 14 districts remain</li>
+            <li>GA-2 (Bishop) and GA-13 stay majority-Black</li>
+            <li>2026 election runs on existing map</li>
+            <li>Voter rolls and precincts unchanged</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="scenario">
+      <div class="scen-head">
+        <span class="scen-num">Scenario 2</span>
+        <h3>Targeted congressional redraw</h3>
+        <span class="likelihood high">High likelihood</span>
+      </div>
+      <div class="scen-body">
+        <div>
+          <p>The General Assembly redraws one or two congressional districts. The most likely targets are GA-2 (Bishop, D, majority-Black, rural southwest) and GA-6 (McBath, D, plurality-Black, suburban Atlanta).</p>
+          <p>A redraw of GA-2 would crack the Black Belt corridor and likely flip the seat from D to R. A redraw of GA-6 would unwind the 2023 court-ordered map.</p>
+          <p><b>Why it could happen:</b> This is the smallest move that delivers a concrete partisan gain (one or two US House seats). Callais provides legal cover.</p>
+          <p><b>Why it might not:</b> Triggers immediate federal VRA litigation. Public visibility is high.</p>
+        </div>
+        <div class="impacts">
+          <h4>If this happens</h4>
+          <ul>
+            <li>Likely loss of 1 to 2 Democratic US House seats</li>
+            <li>Cuthbert, Albany, Macon, Columbus communities redistricted</li>
+            <li>Federal lawsuit filed within days</li>
+            <li>Voter rolls reassigned before 2026 election</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="scenario">
+      <div class="scen-head">
+        <span class="scen-num">Scenario 3</span>
+        <h3>Full congressional and state legislative redraw</h3>
+        <span class="likelihood med">Medium likelihood</span>
+      </div>
+      <div class="scen-body">
+        <div>
+          <p>The General Assembly reopens all 14 congressional districts plus the 180 House and 56 Senate districts. This is what some hard-line members have publicly called for.</p>
+          <p>This is the most aggressive option. It would maximize partisan gain across all three maps but at the cost of statewide disruption and a near-certain wave of lawsuits.</p>
+          <p><b>Why it could happen:</b> Some members want to entrench a working majority through 2030 in case of a Democratic wave. Callais gives more permission than any moment since 1995.</p>
+          <p><b>Why it might not:</b> Logistical strain (236 districts to redraw in days), risk of judicial pushback even from state courts, and the political cost of being seen as overreaching.</p>
+        </div>
+        <div class="impacts">
+          <h4>If this happens</h4>
+          <ul>
+            <li>Every voter in Georgia gets new district assignments</li>
+            <li>Likely loss of 2 to 3 Democratic US House seats</li>
+            <li>State legislative balance shifts further</li>
+            <li>Multiple federal and state lawsuits, multi-year litigation</li>
+            <li>2026 election runs in chaos</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="scenario">
+      <div class="scen-head">
+        <span class="scen-num">Scenario 4</span>
+        <h3>Map plus structural change</h3>
+        <span class="likelihood low">Low likelihood</span>
+      </div>
+      <div class="scen-body">
+        <div>
+          <p>The General Assembly does a targeted redraw and simultaneously passes legislation altering future redistricting rules. Possibilities include locking in a 2030 sunset clause, formalizing a hearing requirement, or creating a (likely toothless) advisory commission.</p>
+          <p>This would be the most politically sophisticated path, combining a short-term gain with a long-term shield.</p>
+          <p><b>Why it could happen:</b> Provides cover that the process was "reformed" while still delivering map changes.</p>
+          <p><b>Why it might not:</b> Few members are willing to give up future map-drawing power, even rhetorically.</p>
+        </div>
+        <div class="impacts">
+          <h4>If this happens</h4>
+          <ul>
+            <li>1 to 2 districts redrawn now</li>
+            <li>New procedural framework for next cycle</li>
+            <li>Potential advisory commission with no binding authority</li>
+            <li>Mixed federal litigation outcome</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <p class="source-line">Scenario analysis: Common Cause Georgia internal analysis (May 2026). Callais context: <a href="https://www.americanprogress.org/article/partisan-gerrymandering-limits-access-health-care/" target="_blank" rel="noopener">Center for American Progress</a>, <a href="https://www.brennancenter.org/our-work/analysis-opinion" target="_blank" rel="noopener">Brennan Center for Justice</a>.</p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="foot">
+  <div class="wrap">
+    <div class="row">
+      <div>
+        <div class="brand">Common Cause Georgia</div>
+        <div>Voter education, election protection, and democracy reform across the state since 1972.</div>
+      </div>
+      <div>
+        <div class="brand">Learn more</div>
+        <div><a href="https://www.commoncause.org/georgia/" target="_blank" rel="noopener">commoncause.org/georgia</a></div>
+        <div>Updated May 2026 &middot; Data sources cited per section</div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+// District data: rep, party, CPVI, risk level
+const DISTRICTS = {
+  '1':  {rep:'Buddy Carter',     party:'R', cpvi:'R+8',  risk:'low',  notes:'Coastal Georgia. Safe R.'},
+  '2':  {rep:'Sanford Bishop',   party:'D', cpvi:'D+4',  risk:'high', notes:'Black-majority rural southwest. Most likely target of any redraw. Includes Cuthbert, Albany, Macon, Columbus.'},
+  '3':  {rep:'Brian Jack',       party:'R', cpvi:'R+15', risk:'low',  notes:'West-central Georgia. Safe R.'},
+  '4':  {rep:'Hank Johnson',     party:'D', cpvi:'D+27', risk:'low',  notes:'DeKalb County core. Safe D.'},
+  '5':  {rep:'Nikema Williams',  party:'D', cpvi:'D+36', risk:'low',  notes:'Atlanta urban core. Safe D.'},
+  '6':  {rep:'Lucy McBath',      party:'D', cpvi:'D+25', risk:'high', notes:'Suburban Atlanta, plurality-Black after 2023 redraw. Second most likely redraw target.'},
+  '7':  {rep:'Rich McCormick',   party:'R', cpvi:'R+11', risk:'low',  notes:'Gwinnett and Forsyth. Safe R.'},
+  '8':  {rep:'Austin Scott',     party:'R', cpvi:'R+15', risk:'low',  notes:'Middle Georgia rural. Safe R.'},
+  '9':  {rep:'Andrew Clyde',     party:'R', cpvi:'R+17', risk:'low',  notes:'Northeast Georgia. Safe R.'},
+  '10': {rep:'Mike Collins',     party:'R', cpvi:'R+11', risk:'low',  notes:'East-central Georgia. Safe R.'},
+  '11': {rep:'Barry Loudermilk', party:'R', cpvi:'R+12', risk:'low',  notes:'Northwest Atlanta suburbs. Safe R.'},
+  '12': {rep:'Rick Allen',       party:'R', cpvi:'R+7',  risk:'med',  notes:'East Georgia, Augusta. Could become more competitive depending on redraw.'},
+  '13': {rep:'Vacant (D)',       party:'D', cpvi:'D+21', risk:'med',  notes:'South Atlanta suburbs, majority-Black. Vacant since April 2026.'},
+  '14': {rep:'Clay Fuller',      party:'R', cpvi:'R+19', risk:'low',  notes:'Northwest Georgia. Safe R.'}
+};
+
+const COLORS = {
+  'D': '#3D7B89',
+  'R': '#A84B2F'
+};
+const RISK_LABEL = {
+  'high': 'High risk: prime redraw target',
+  'med':  'Medium risk: could shift in a wider redraw',
+  'low':  'Low risk: not a likely target'
+};
+const RISK_CLASS = {
+  'high': 'high',
+  'med':  'med',
+  'low':  'low'
+};
+
+// Initialize map
+const map = L.map('map', {
+  center: [32.7, -83.5],
+  zoom: 7,
+  zoomControl: true,
+  attributionControl: true,
+  scrollWheelZoom: false
+});
+
+// Light tile background
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
+  maxZoom: 18,
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+}).addTo(map);
+
+// District style
+function styleDistrict(feature) {
+  const num = feature.properties.BASENAME;
+  const d = DISTRICTS[num];
+  if (!d) return {color:'#888',weight:1,fillOpacity:0.3};
+  return {
+    color: '#FBFAF6',
+    weight: 1.5,
+    opacity: 1,
+    fillColor: COLORS[d.party],
+    fillOpacity: d.risk === 'high' ? 0.85 : (d.risk === 'med' ? 0.7 : 0.55),
+    dashArray: d.risk === 'high' ? '5,4' : null
+  };
+}
+
+let geoLayer;
+let geoData;
+
+fetch('ga_cd119_compact.json')
+  .then(r => r.json())
+  .then(data => {
+    geoData = data;
+    geoLayer = L.geoJSON(data, {
+      style: styleDistrict,
+      onEachFeature: (feature, layer) => {
+        const num = feature.properties.BASENAME;
+        const d = DISTRICTS[num];
+        if (!d) return;
+        const html = `
+          <div class="pop-num">District ${num}</div>
+          <div class="pop-name">${d.rep}</div>
+          <div class="pop-rep">${d.party === 'D' ? 'Democratic' : 'Republican'} &middot; CPVI ${d.cpvi}</div>
+          <div class="pop-cpvi">${d.notes}</div>
+          <div class="pop-risk ${RISK_CLASS[d.risk]}">${RISK_LABEL[d.risk]}</div>
+        `;
+        layer.bindPopup(html);
+        layer.on('mouseover', () => layer.setStyle({weight: 3, color: '#1F3A5F'}));
+        layer.on('mouseout', () => geoLayer.resetStyle(layer));
+
+        // District number label
+        const center = layer.getBounds().getCenter();
+        L.marker(center, {
+          icon: L.divIcon({
+            className: 'cd-label',
+            html: `<div style="background:rgba(255,255,255,0.92);border:1px solid #1F3A5F;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#1F3A5F;font-size:13px;box-shadow:0 1px 2px rgba(0,0,0,0.15);">${num}</div>`,
+            iconSize: [28, 28],
+            iconAnchor: [14, 14]
+          }),
+          interactive: false
+        }).addTo(map);
+      }
+    }).addTo(map);
+    map.fitBounds(geoLayer.getBounds(), {padding: [20, 20]});
+  })
+  .catch(err => {
+    document.getElementById('map').innerHTML = '<div style="padding:40px;text-align:center;color:#A84B2F;">Map failed to load. Data file missing.</div>';
+    console.error(err);
+  });
+
+// Filter buttons
+document.querySelectorAll('.chip[data-filter]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.chip[data-filter]').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+    const f = btn.dataset.filter;
+    if (!geoLayer) return;
+    geoLayer.eachLayer(layer => {
+      const num = layer.feature.properties.BASENAME;
+      const d = DISTRICTS[num];
+      let show = true;
+      if (f === 'dem') show = d.party === 'D';
+      else if (f === 'rep') show = d.party === 'R';
+      else if (f === 'risk') show = d.risk === 'high' || d.risk === 'med';
+      layer.setStyle(show ? styleDistrict(layer.feature) : {fillOpacity: 0.05, opacity: 0.15, color: '#999'});
+    });
+  });
+});
+</script>
+
+</body>
+</html>
