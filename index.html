@@ -157,6 +157,52 @@
   .a-card .callout{background:var(--pale);border-radius:6px;padding:12px 14px;margin-top:12px;}
   .a-card .callout .ct-lbl{font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:var(--navy);font-weight:700;margin-bottom:4px;}
   .a-card .callout p{font-size:14px;margin:0;}
+
+  /* ============ VAP demographic section ============ */
+  .vap-section{background:linear-gradient(180deg,#FBFBF9 0%,#F4F1EA 100%);padding:32px 0 36px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+  .vap-section h2{margin:0 0 6px 0;font-size:30px;color:var(--navy);letter-spacing:-0.01em;}
+  .vap-section .vap-lede{font-size:17px;line-height:1.55;color:var(--ink);margin:0 0 22px 0;max-width:780px;}
+  .vap-headline{display:grid;grid-template-columns:repeat(4,1fr);gap:0;background:#fff;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:22px;}
+  @media (max-width:760px){.vap-headline{grid-template-columns:repeat(2,1fr);}}
+  .vap-headline .cell{padding:20px 18px;border-right:1px solid var(--border);}
+  .vap-headline .cell:last-child{border-right:none;}
+  .vap-headline .lbl-top{font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--grey);font-weight:600;margin-bottom:6px;}
+  .vap-headline .num{font-size:36px;font-weight:700;color:var(--navy);line-height:1;}
+  .vap-headline .num.delta{color:#1B6B2F;}
+  .vap-headline .sub{font-size:13px;color:var(--grey);margin-top:6px;line-height:1.4;}
+  .vap-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:22px;}
+  @media (max-width:900px){.vap-grid{grid-template-columns:1fr;}}
+  .vap-card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:20px 22px;}
+  .vap-card h3{margin:0 0 12px 0;font-size:18px;color:var(--navy);}
+  .vap-card h4{margin:18px 0 8px 0;font-size:14px;letter-spacing:0.08em;text-transform:uppercase;color:var(--grey);font-weight:700;}
+  .vap-card .receipt-row{display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:1px dotted var(--border);font-size:14px;}
+  .vap-card .receipt-row:last-child{border-bottom:none;}
+  .vap-card .receipt-row .nm{color:var(--ink);font-weight:600;}
+  .vap-card .receipt-row .val{color:var(--navy);font-variant-numeric:tabular-nums;font-weight:600;}
+  .vap-card .receipt-row .delta{font-size:12px;color:#1B6B2F;font-weight:600;margin-left:8px;font-variant-numeric:tabular-nums;}
+  .vap-card .receipt-row .delta.neg{color:#A13544;}
+  .vap-toggle{display:inline-flex;gap:0;border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:14px;}
+  .vap-toggle button{appearance:none;background:#fff;border:none;padding:8px 14px;font-size:13px;color:var(--ink);cursor:pointer;font-weight:600;}
+  .vap-toggle button.on{background:var(--navy);color:#fff;}
+  .vap-key{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;font-size:12px;}
+  .vap-key .item{display:inline-flex;align-items:center;gap:6px;color:var(--grey);}
+  .vap-key .sw{width:14px;height:14px;border-radius:3px;display:inline-block;border:1px solid rgba(0,0,0,0.1);}
+  .vap-search{display:flex;gap:8px;margin:14px 0 6px 0;}
+  .vap-search input{flex:1;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:14px;font-family:inherit;}
+  .vap-county-detail{font-size:14px;line-height:1.55;color:var(--ink);min-height:64px;padding-top:8px;}
+  .vap-county-detail .nm{font-weight:700;color:var(--navy);font-size:16px;}
+  .vap-county-detail .row{display:flex;justify-content:space-between;padding:4px 0;}
+  .vap-county-detail .row .lbl{color:var(--grey);}
+  .vap-method-row{font-size:12px;color:var(--grey);line-height:1.5;}
+  .vap-method-row b{color:var(--ink);}
+
+  /* SVG hex / county grid map (compact representation, no external geo) */
+  .vap-mapwrap{position:relative;width:100%;}
+  .vap-mapwrap svg{width:100%;height:auto;display:block;}
+  .vap-mapwrap svg .county{stroke:#fff;stroke-width:0.6;cursor:pointer;transition:filter .15s;}
+  .vap-mapwrap svg .county:hover{filter:brightness(1.1);stroke:var(--navy);stroke-width:1.2;}
+  .vap-mapwrap svg .county.sel{stroke:var(--navy);stroke-width:2;}
+  .vap-mapwrap svg text.clbl{font-size:6px;fill:#fff;font-weight:600;pointer-events:none;text-anchor:middle;}
 </style>
 </head>
 <body>
@@ -192,6 +238,49 @@
     </div>
   </div>
 </div>
+
+<!-- ============================================================== -->
+<!-- DEMOGRAPHIC FOUNDATION (VAP): appears for all chamber views    -->
+<!-- ============================================================== -->
+<section class="vap-section" id="vap-foundation">
+  <div class="wrap">
+    <h2>The receipts: Georgia changed. The map did not.</h2>
+    <p class="vap-lede">This is what the courts look at when they ask whether a redistricting plan dilutes Black voting power. Any Part Black Voting Age Population from the Decennial Census. The same measure used in <a href="https://www.supremecourt.gov/opinions/22pdf/21-1086_1co6.pdf" target="_blank" rel="noopener">Allen v. Milligan</a> and in the federal order against Georgia's prior maps.</p>
+
+    <div class="vap-headline" id="vap-headline">
+      <!-- filled by JS -->
+    </div>
+
+    <div class="vap-grid">
+      <!-- LEFT: county map -->
+      <div class="vap-card">
+        <h3>Every Georgia county, every Black voter, 2020.</h3>
+        <div class="vap-toggle" role="tablist" aria-label="Map view selector">
+          <button class="on" data-view="share">Black share of VAP (2020)</button>
+          <button data-view="growth">Growth since 2010</button>
+        </div>
+        <div class="vap-mapwrap" id="vap-mapwrap" aria-label="Map of Georgia counties by Black voting age population"></div>
+        <div class="vap-key" id="vap-key"></div>
+        <div class="vap-search">
+          <input type="text" id="vap-search-input" placeholder="Type a county name to find it (e.g., Fulton, Dougherty)" autocomplete="off">
+        </div>
+        <div class="vap-county-detail" id="vap-detail">Hover any county to see the receipts. Click to pin.</div>
+      </div>
+
+      <!-- RIGHT: receipts list -->
+      <div class="vap-card">
+        <h3>Where the lines are being drawn around real people.</h3>
+        <h4>Counties with the largest Black voter populations (2020)</h4>
+        <div id="vap-top-abs"></div>
+        <h4>Counties where Black voters grew fastest since 2010</h4>
+        <div id="vap-top-growth"></div>
+        <p class="vap-method-row" style="margin-top:18px;"><b>Why this matters.</b> Federal courts evaluating a Section 2 Voting Rights Act claim ask whether a politically cohesive minority group is sufficiently large and geographically compact to constitute a majority in a single district. The measure of "sufficiently large" is Any Part Black VAP. If the General Assembly's new maps reduce the number of districts where Black voters can elect their candidate of choice below what this population supports, that is the legal injury.</p>
+      </div>
+    </div>
+
+    <p class="source-line" style="margin-top:18px;">Source: <a href="https://www.census.gov/programs-surveys/decennial-census/about/rdo/summary-files.html" target="_blank" rel="noopener">U.S. Census Bureau, 2020 and 2010 Decennial Census, P.L. 94-171 Redistricting Data Summary File, Table P3</a>. Methodology: Any Part Black VAP is the sum of persons age 18+ who reported Black or African American alone or in combination with any other race(s). State and county totals reconcile to the published Census files. County centroids: U.S. Census Bureau, 2020 Gazetteer.</p>
+  </div>
+</section>
 
 <!-- ============================================================== -->
 <!-- US HOUSE VIEW                                                   -->
@@ -1275,6 +1364,229 @@ document.querySelectorAll('.filter-btns').forEach(group => {
 
 // Initialize the default visible map
 initMap('us');
+</script>
+
+<!-- ============================================================== -->
+<!-- VAP demographic layer renderer                                   -->
+<!-- ============================================================== -->
+<script>
+(function(){
+  let DATA = null;
+  let currentView = 'share';
+  let pinnedFips = null;
+
+  // GA bounding box for projection (with small padding)
+  const LAT_MIN = 30.55, LAT_MAX = 35.05;
+  const LON_MIN = -85.7, LON_MAX = -80.9;
+
+  // Choropleth scales
+  const SHARE_BUCKETS = [
+    { min: 60, color: '#0E3A5C', label: '60% or more' },
+    { min: 50, color: '#1A5E84', label: '50 to 60%' },
+    { min: 40, color: '#3A87AC', label: '40 to 50%' },
+    { min: 30, color: '#7AB0C9', label: '30 to 40%' },
+    { min: 20, color: '#B5D2E0', label: '20 to 30%' },
+    { min: 10, color: '#DEEAF1', label: '10 to 20%' },
+    { min: 0,  color: '#F2F5F8', label: 'Under 10%' },
+  ];
+  const GROWTH_BUCKETS = [
+    { min: 50,  color: '#1B6B2F', label: '50% or more growth' },
+    { min: 25,  color: '#5B9F4E', label: '25 to 50%' },
+    { min: 10,  color: '#A8CC92', label: '10 to 25%' },
+    { min: 0,   color: '#E6E6D8', label: '0 to 10%' },
+    { min: -100,color: '#C7896B', label: 'Decline' },
+  ];
+
+  function shareColor(pct){
+    if (pct == null) return '#E5E5E5';
+    for (const b of SHARE_BUCKETS){ if (pct >= b.min) return b.color; }
+    return SHARE_BUCKETS[SHARE_BUCKETS.length-1].color;
+  }
+  function growthColor(pct){
+    if (pct == null) return '#E5E5E5';
+    for (const b of GROWTH_BUCKETS){ if (pct >= b.min) return b.color; }
+    return GROWTH_BUCKETS[GROWTH_BUCKETS.length-1].color;
+  }
+
+  function fmt(n){ return n == null ? 'n/a' : n.toLocaleString('en-US'); }
+  function pct(n){ return n == null ? 'n/a' : (n.toFixed(2) + '%'); }
+  function pctSigned(n){ if (n == null) return 'n/a'; return (n>=0?'+':'') + n.toFixed(2) + '%'; }
+  function ppSigned(n){ if (n == null) return 'n/a'; return (n>=0?'+':'') + n.toFixed(2) + ' pp'; }
+
+  function renderHeadline(){
+    const s = DATA.state;
+    const el = document.getElementById('vap-headline');
+    el.innerHTML = `
+      <div class="cell">
+        <div class="lbl-top">Black voting age population, 2020</div>
+        <div class="num">${fmt(s.vap_black_any_part_2020)}</div>
+        <div class="sub">${pct(s.pct_black_any_part_2020)} of all Georgia voters age 18+</div>
+      </div>
+      <div class="cell">
+        <div class="lbl-top">Black voting age population, 2010</div>
+        <div class="num">${fmt(s.vap_black_any_part_2010)}</div>
+        <div class="sub">${pct(s.pct_black_any_part_2010)} a decade earlier</div>
+      </div>
+      <div class="cell">
+        <div class="lbl-top">Growth, 2010 to 2020</div>
+        <div class="num delta">${pctSigned(s.apb_growth_pct)}</div>
+        <div class="sub">vs. ${pctSigned(s.total_growth_pct)} for all Georgia voters age 18+</div>
+      </div>
+      <div class="cell">
+        <div class="lbl-top">Share of GA voters age 18+</div>
+        <div class="num delta">${ppSigned(s.pct_pp_change)}</div>
+        <div class="sub">Black share went from ${pct(s.pct_black_any_part_2010)} to ${pct(s.pct_black_any_part_2020)}</div>
+      </div>
+    `;
+  }
+
+  function projectXY(lat, lon, W, H){
+    const x = ((lon - LON_MIN) / (LON_MAX - LON_MIN)) * W;
+    const y = ((LAT_MAX - lat) / (LAT_MAX - LAT_MIN)) * H;
+    return [x, y];
+  }
+
+  function radiusForPop(vap){
+    // sqrt scale so dot area is proportional to VAP
+    const r = Math.sqrt(vap) * 0.045;
+    return Math.max(2.2, Math.min(28, r));
+  }
+
+  function renderMap(){
+    const W = 800, H = 500;
+    const wrap = document.getElementById('vap-mapwrap');
+    const counties = DATA.counties.filter(c => c.lat != null);
+
+    let svg = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">`;
+    // Light Georgia outline backdrop (just a rectangle of the bbox is too crude;
+    // we paint with the dots themselves)
+    svg += `<rect x="0" y="0" width="${W}" height="${H}" fill="#FBFBF9"/>`;
+
+    // Sort so big dots are drawn first (small dots on top)
+    const sorted = counties.slice().sort((a,b) => b.vap_total_2020 - a.vap_total_2020);
+    for (const c of sorted){
+      const [x, y] = projectXY(c.lat, c.lon, W, H);
+      const r = radiusForPop(c.vap_total_2020);
+      const fill = currentView === 'share'
+        ? shareColor(c.pct_black_any_part_2020)
+        : growthColor(c.apb_change_pct);
+      const sel = (c.fips === pinnedFips) ? ' sel' : '';
+      svg += `<circle class="county${sel}" data-fips="${c.fips}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" fill="${fill}"><title>${c.namelsad}: ${pct(c.pct_black_any_part_2020)} Black VAP (${fmt(c.vap_black_any_part_2020)} of ${fmt(c.vap_total_2020)})</title></circle>`;
+    }
+    svg += `</svg>`;
+    wrap.innerHTML = svg;
+
+    // Wire hover and click
+    wrap.querySelectorAll('circle.county').forEach(el => {
+      el.addEventListener('mouseenter', e => {
+        const fips = e.target.getAttribute('data-fips');
+        if (!pinnedFips) showDetail(fips);
+      });
+      el.addEventListener('click', e => {
+        const fips = e.target.getAttribute('data-fips');
+        pinnedFips = (pinnedFips === fips) ? null : fips;
+        renderMap();
+        showDetail(pinnedFips || fips);
+      });
+    });
+    wrap.addEventListener('mouseleave', () => {
+      if (!pinnedFips){
+        document.getElementById('vap-detail').innerHTML = 'Hover any county to see the receipts. Click to pin.';
+      }
+    });
+  }
+
+  function renderKey(){
+    const el = document.getElementById('vap-key');
+    const buckets = (currentView === 'share') ? SHARE_BUCKETS : GROWTH_BUCKETS;
+    const note = (currentView === 'share')
+      ? 'Dot size shows total voter population age 18+. Color shows Black share.'
+      : 'Dot size shows total voter population age 18+. Color shows growth in Black voters 2010 to 2020.';
+    el.innerHTML = buckets.map(b =>
+      `<span class="item"><span class="sw" style="background:${b.color}"></span>${b.label}</span>`
+    ).join('') + `<span class="item" style="flex-basis:100%;color:var(--grey);margin-top:6px;">${note}</span>`;
+  }
+
+  function showDetail(fips){
+    const c = DATA.counties.find(x => x.fips === fips);
+    if (!c){ return; }
+    const el = document.getElementById('vap-detail');
+    el.innerHTML = `
+      <div class="nm">${c.namelsad}</div>
+      <div class="row"><span class="lbl">Total voters age 18+ (2020)</span><span>${fmt(c.vap_total_2020)}</span></div>
+      <div class="row"><span class="lbl">Black voters age 18+ (2020)</span><span>${fmt(c.vap_black_any_part_2020)} (${pct(c.pct_black_any_part_2020)})</span></div>
+      <div class="row"><span class="lbl">Black voters age 18+ (2010)</span><span>${fmt(c.vap_black_any_part_2010)} (${pct(c.pct_black_any_part_2010)})</span></div>
+      <div class="row"><span class="lbl">Growth in Black voters 2010 to 2020</span><span style="color:${c.apb_change_pct>=0?'#1B6B2F':'#A13544'};font-weight:600;">${pctSigned(c.apb_change_pct)}</span></div>
+      <div class="row"><span class="lbl">Change in Black share of VAP</span><span style="font-weight:600;">${ppSigned(c.pct_pp_change)}</span></div>
+    `;
+  }
+
+  function renderReceiptLists(){
+    const topAbs = DATA.counties.slice()
+      .filter(c => c.vap_black_any_part_2020 > 0)
+      .sort((a,b) => b.vap_black_any_part_2020 - a.vap_black_any_part_2020)
+      .slice(0, 10);
+    document.getElementById('vap-top-abs').innerHTML = topAbs.map(c =>
+      `<div class="receipt-row"><span class="nm">${c.namelsad}</span>` +
+      `<span><span class="val">${fmt(c.vap_black_any_part_2020)}</span> ` +
+      `<span class="delta">${pct(c.pct_black_any_part_2020)}</span></span></div>`
+    ).join('');
+
+    const topGrowth = DATA.counties.slice()
+      .filter(c => c.vap_black_any_part_2010 != null && c.vap_black_any_part_2010 >= 1000)
+      .sort((a,b) => b.apb_change_pct - a.apb_change_pct)
+      .slice(0, 10);
+    document.getElementById('vap-top-growth').innerHTML = topGrowth.map(c => {
+      const cls = c.apb_change_pct >= 0 ? 'delta' : 'delta neg';
+      return `<div class="receipt-row"><span class="nm">${c.namelsad}</span>` +
+        `<span><span class="val">${pctSigned(c.apb_change_pct)}</span> ` +
+        `<span class="delta">${fmt(c.vap_black_any_part_2010)} → ${fmt(c.vap_black_any_part_2020)}</span></span></div>`;
+    }).join('');
+  }
+
+  function wireToggle(){
+    document.querySelectorAll('.vap-toggle button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.vap-toggle button').forEach(b => b.classList.remove('on'));
+        btn.classList.add('on');
+        currentView = btn.getAttribute('data-view');
+        renderKey();
+        renderMap();
+      });
+    });
+  }
+
+  function wireSearch(){
+    const inp = document.getElementById('vap-search-input');
+    inp.addEventListener('input', () => {
+      const q = inp.value.trim().toLowerCase();
+      if (!q){ pinnedFips = null; renderMap(); return; }
+      const match = DATA.counties.find(c => c.name.toLowerCase().includes(q));
+      if (match){
+        pinnedFips = match.fips;
+        renderMap();
+        showDetail(match.fips);
+      }
+    });
+  }
+
+  // Load + init
+  fetch('ga_vap_layer.json')
+    .then(r => r.json())
+    .then(d => {
+      DATA = d;
+      renderHeadline();
+      renderKey();
+      renderMap();
+      renderReceiptLists();
+      wireToggle();
+      wireSearch();
+    })
+    .catch(err => {
+      console.error('VAP layer load failed', err);
+      document.getElementById('vap-foundation').style.display = 'none';
+    });
+})();
 </script>
 
 </body>
