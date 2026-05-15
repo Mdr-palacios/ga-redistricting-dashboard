@@ -162,6 +162,20 @@
   .vap-section{background:linear-gradient(180deg,#FBFBF9 0%,#F4F1EA 100%);padding:32px 0 36px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
   .vap-section h2{margin:0 0 6px 0;font-size:30px;color:var(--navy);letter-spacing:-0.01em;}
   .vap-section .vap-lede{font-size:17px;line-height:1.55;color:var(--ink);margin:0 0 22px 0;max-width:780px;}
+
+  /* At-risk callout: how many Black-majority districts are in play */
+  .atrisk-callout{background:#FFFDF5;border:1px solid var(--border);border-left:4px solid var(--warn);border-radius:8px;padding:20px 24px;margin:24px 0 0 0;}
+  .atrisk-callout h3{margin:0 0 4px 0;font-size:18px;color:var(--navy-deep);letter-spacing:-0.01em;}
+  .atrisk-callout .atrisk-sub{margin:0 0 16px 0;font-size:13px;color:var(--grey);text-transform:uppercase;letter-spacing:0.06em;font-weight:600;}
+  .atrisk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+  @media (max-width:760px){ .atrisk-grid{grid-template-columns:1fr;} }
+  .atrisk-tier{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:14px 16px;}
+  .atrisk-tier .num{font-size:30px;font-weight:700;color:var(--navy-deep);line-height:1;letter-spacing:-0.02em;display:block;}
+  .atrisk-tier .num-sub{font-size:12px;color:var(--grey);text-transform:uppercase;letter-spacing:0.05em;font-weight:600;margin-top:6px;display:block;}
+  .atrisk-tier .tier-label{font-size:14px;font-weight:700;color:var(--ink);margin:10px 0 4px 0;}
+  .atrisk-tier .tier-desc{font-size:13px;color:var(--ink);line-height:1.5;margin:0;}
+  .atrisk-foot{margin:14px 0 0 0;font-size:12px;color:var(--grey);line-height:1.5;}
+  .atrisk-foot a{color:var(--teal);}
   .vap-headline{display:grid;grid-template-columns:repeat(4,1fr);gap:0;background:#fff;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:22px;}
   @media (max-width:760px){.vap-headline{grid-template-columns:repeat(2,1fr);}}
   .vap-headline .cell{padding:20px 18px;border-right:1px solid var(--border);}
@@ -237,6 +251,37 @@
       </div>
     </div>
   </div>
+</div>
+
+<!-- ============================================================== -->
+<!-- AT-RISK CALLOUT (always visible, chamber-agnostic)             -->
+<!-- ============================================================== -->
+<div class="wrap">
+  <aside class="atrisk-callout" aria-label="How many Black-majority districts are at risk under Callais">
+    <h3>How many Black-majority districts are actually at risk?</h3>
+    <p class="atrisk-sub">A three-tier read on the legal exposure after Louisiana v. Callais</p>
+    <div class="atrisk-grid">
+      <div class="atrisk-tier">
+        <span class="num">8</span>
+        <span class="num-sub">Hardest floor</span>
+        <p class="tier-label">Court-ordered VRA remedies</p>
+        <p class="tier-desc">1 congressional, 2 state Senate, 5 state House districts the federal court ordered Georgia to draw in 2023 (Alpha Phi Alpha v. Raffensperger). The cleanest target for a post-Callais legislature.</p>
+      </div>
+      <div class="atrisk-tier">
+        <span class="num">~25</span>
+        <span class="num-sub">Direct risk</span>
+        <p class="tier-label">Court-ordered plus same-region opportunity districts</p>
+        <p class="tier-desc">The court-ordered seats and surrounding districts in south metro Atlanta, west Atlanta, Macon, Milledgeville, and Augusta whose lines rest on the same VRA theory.</p>
+      </div>
+      <div class="atrisk-tier">
+        <span class="num">70</span>
+        <span class="num-sub">Universe in play</span>
+        <p class="tier-label">All Black-majority legislative districts</p>
+        <p class="tier-desc">16 state Senate plus 54 state House districts that are Black-majority today. Demographics protect most of them. Callais puts the underlying legal framework in play.</p>
+      </div>
+    </div>
+    <p class="atrisk-foot">Court order counts from <a href="https://www.aclu.org/press-releases/federal-court-orders-georgia-to-redraw-state-legislative-district-maps" target="_blank" rel="noopener">ACLU on Alpha Phi Alpha v. Raffensperger</a>. Black-majority totals from the 2023 remedial maps reported by the <a href="https://www.ajc.com/politics/proposed-georgia-house-map-pairs-incumbents-adds-five-black-districts/7LFQ25F76ZCFVFXRJAYSRCYOV4/" target="_blank" rel="noopener">AJC</a> and <a href="https://thecurrentga.org/2023/12/02/georgia-lawmakers-exchange-sharp-words-as-gop-drawn-political-maps-clear-key-vote-friday/" target="_blank" rel="noopener">The Current</a>. The federal courts evaluate Section 2 claims on Any Part Black VAP, the measure used throughout this dashboard.</p>
+  </aside>
 </div>
 
 <!-- ============================================================== -->
